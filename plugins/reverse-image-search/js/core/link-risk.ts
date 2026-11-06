@@ -6,9 +6,10 @@ export const PhishingListUrl =
 export const MaxPhishingBytes = 2 * 1024 * 1024
 
 const MaxLinks = 20
-const UrlRe = /https?:\/\/[^\s<>()[\]"']+/gi
-const HostRe = /^https?:\/\/(?:[^/?#@]*@)?([^/?#:]+)/i
-const DomainRe = /^[a-z0-9.-]{1,253}$/
+// Stops at Markdown marks, curly quotes, and emoji, so they never join the host
+const UrlRe = /https?:\/\/[^\s<>()[\]"'`|*~\u2000-\u206f\ud800-\udfff]+/gi
+const HostRe = /^https?:\/\/(?:[^/?#@]*@)?([^/?#:,;!]+)/i
+const DomainRe = /^[a-z0-9.\-\u0080-\uffff]{1,253}$/
 const Brands = ['discord', 'steamcommunity', 'steampowered', 'roblox']
 const LookalikeNames: Record<string, string> = {
 	discord: 'discord.com',
@@ -49,7 +50,9 @@ const isRecord = (value: unknown): value is Unknowns =>
 	typeof value === 'object' && value !== null
 
 function hostOf(url: string) {
-	const host = HostRe.exec(url)?.[1]?.toLowerCase().replace(/\.+$/, '')
+	const host = HostRe.exec(url)?.[1]
+		?.toLowerCase()
+		.replace(/[._]+$/, '')
 	const domain = host?.replace(/^www\./, '')
 
 	return domain && DomainRe.test(domain) && domain.includes('.')
@@ -138,6 +141,7 @@ export function lookalikeOf(domain: string) {
 }
 
 export const isDisguised = (domain: string) =>
+	/[^a-z0-9.-]/.test(domain) ||
 	domain.split('.').some(label => label.startsWith('xn--'))
 
 export function linkSignals(domains: string[], list?: Set<string>): Signal[] {

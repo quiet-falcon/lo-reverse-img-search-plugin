@@ -144,9 +144,9 @@ Google Vision was skipped by Sensei on 2026-11-06, before any live call. Its che
 
 | Check | Result |
 | --- | --- |
-| TinEye row opens sorted by oldest | Not run |
-| Hand-off rows show their labels | Not run |
-| No Vision setting or row appears | Not run |
+| TinEye row opens sorted by oldest | Passed on the phone, reported by Sensei |
+| Hand-off rows show their labels | Passed, seen in Sensei's screenshots |
+| No Vision setting or row appears | Passed on the phone, reported by Sensei |
 
 Run these when Vision returns:
 
@@ -233,12 +233,12 @@ Gates closed by this run:
 
 ## P8 device checks
 
-Built as `0.8.0-alpha1`. These have not been run on a device yet.
+First device run on 2026-11-06 with `0.8.0-alpha1`, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. Later builds also read links inside Discord formatting and hosts written with look-alike letters.
 
 | Check | Result |
 | --- | --- |
-| Check Links row shows only on messages with links | Not run |
-| Listed scam domain is flagged | Not run |
+| Check Links row shows only on messages with links | Not run: row and sheet seen on a link message, other messages not checked |
+| Listed scam domain is flagged | Passed, screenshot: `dlscord-nitro.xyz` |
 | Lookalike is flagged | Not run |
 | Real Discord link is not flagged | Not run |
 | Unrelated link shows no known risks | Not run |

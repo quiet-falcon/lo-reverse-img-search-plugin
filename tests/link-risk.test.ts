@@ -22,6 +22,39 @@ describe('domainsFromMessage', () => {
 		).toEqual(['example.com', 'login.test.org', 'a.io', 'embed.net'])
 	})
 
+	test('reads links wrapped in Discord formatting or punctuation', () => {
+		const cases: [string, string][] = [
+			['`https://bad.example`', 'bad.example'],
+			['||https://bad.example||', 'bad.example'],
+			['**https://bad.example**', 'bad.example'],
+			['__https://bad.example__', 'bad.example'],
+			['~~https://bad.example~~', 'bad.example'],
+			['go to https://bad.example, now', 'bad.example'],
+			['really? https://bad.example!', 'bad.example'],
+			['see https://bad.example.', 'bad.example'],
+			['[free nitro](https://bad.example/gift)', 'bad.example'],
+			['\u201chttps://bad.example\u201d', 'bad.example'],
+			['https://bad.example\u{1F381}', 'bad.example'],
+		]
+
+		for (const [content, domain] of cases)
+			expect(domainsFromMessage({ content })).toEqual([domain])
+	})
+
+	test('keeps a host written with look-alike letters', () => {
+		expect(
+			domainsFromMessage({ content: 'https://d\u0456scord.com/gift' }),
+		).toEqual(['d\u0456scord.com'])
+	})
+
+	test('reads each link in a message with several', () => {
+		expect(
+			domainsFromMessage({
+				content: 'https://one.example/\n\nhttps://two.example/gift\n"note"',
+			}),
+		).toEqual(['one.example', 'two.example'])
+	})
+
 	test('dedupes, ignores junk, and survives bad messages', () => {
 		expect(
 			domainsFromMessage({ content: 'https://a.io https://a.io/2 https://x' }),

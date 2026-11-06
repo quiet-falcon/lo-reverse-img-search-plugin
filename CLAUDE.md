@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.8.0-alpha1",
+	"version": "0.8.0-alpha2",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -870,7 +870,7 @@ Work:
 
 - Entries in `blocklist/entries.json`, holding hashes, categories, and report counts, never images. **Built.**
 - `publish-blocklist.yml`, publishing a compact list to the `community-list` branch with a real Ed25519 signature. The private key stays in Actions, and the public key ships in the plugin. **Built.** This replaces Pages, so the list needs no Pages setup or release.
-- `adapters/community-sync.ts`: fetches `manifest.json`, checks its signature, refuses older versions, then fetches `list.json` and checks its SHA-256. **Built.** It runs from a settings button until gate 32 measures the check on the phone. Daily updates can follow.
+- `adapters/community-sync.ts`: fetches `manifest.json`, checks its signature, refuses older versions, then fetches `list.json` and checks its SHA-256. **Built.** It runs from a settings button and from the daily update below.
 - A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built.**
 - Community hits show distance, report count, and category, because there is no image to compare. **Built.**
 
