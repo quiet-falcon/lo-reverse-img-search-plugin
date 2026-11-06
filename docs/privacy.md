@@ -34,9 +34,7 @@ Profile pictures and banners check your list by themselves once it has entries, 
 
 ## Community list
 
-The community list updates by itself at most once a day, and **Update community list** does it on demand. It's a signed list from `raw.githubusercontent.com`, so GitHub sees your IP address. The list holds fingerprints, categories, and report counts, never pictures or names.
-
-**Report to community list** opens GitHub in your browser with the image's fingerprint filled in. Nothing is sent until you submit it. The issue is public and shows your GitHub account. Every report needs Sensei's approval before it joins the list.
+The community list updates by itself at most once a day, and **Update community list** does it on demand. It's a signed list from `raw.githubusercontent.com`, so GitHub sees your IP address. The list holds fingerprints, categories, and counts, never pictures or names.
 
 ## Check Links
 

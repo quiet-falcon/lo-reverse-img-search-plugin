@@ -11,6 +11,7 @@ import { openLinkSheet } from '../ui/LinkSheet'
 import { openSearchSheet } from '../ui/SearchSheet'
 import { linkIcon, profileIcon, searchIcon } from './icons'
 import { profileForMessage } from './profile'
+import { currentSettings } from './settings-store'
 import type { FC } from 'react'
 import type { Profile } from '../core/profile'
 import type { ImageTarget } from '../core/types'
@@ -35,11 +36,13 @@ export function patchMessageSheet(
 				// Discord's own sheet must survive any failure here
 				try {
 					const message = args[0]?.message
+					const { entrySearch, entryProfile, entryLinks } = currentSettings()
+
 					addRows(
 						tree,
-						targetsFromMessage(message),
-						profileForMessage(message, onRecords),
-						domainsFromMessage(message),
+						entrySearch ? targetsFromMessage(message) : [],
+						entryProfile ? profileForMessage(message, onRecords) : undefined,
+						entryLinks ? domainsFromMessage(message) : [],
 					)
 				} catch (error) {
 					onError(error)

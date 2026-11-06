@@ -34,6 +34,7 @@ import { previewUrl } from '../core/target'
 import { AiCheck } from './AiCheck'
 import { HashCheck } from './HashCheck'
 import { SignalStrip } from './SignalStrip'
+import type { ResultFilters } from '../core/messages'
 import type { SearchState } from '../core/session'
 import type { ProviderSpec } from '../core/settings'
 import type { Signal } from '../core/signals'
@@ -352,8 +353,10 @@ function RankedResults({
 	web: WebFindings | undefined
 }) {
 	const [showWeak, setShowWeak] = useState(false)
+	const { minTier, hideAdult } = useSettings()
+	const filters = { minTier, hideAdult }
 	const fused = fuseResults(outcomes, order)
-	const { shown, weak, adult } = visibleResults(fused, showWeak)
+	const { shown, weak, adult } = visibleResults(fused, showWeak, filters)
 	const [best, ...rest] = shown
 	const hasBest = best !== undefined && best.tier !== 'possible'
 	const others = hasBest ? rest : shown
@@ -385,14 +388,18 @@ function RankedResults({
 				<ActionSheetRow.Group>
 					<ActionSheetSwitchRow
 						label="Show weaker matches"
-						subLabel="Low similarity. These are usually wrong."
+						subLabel={
+							minTier === 'exact'
+								? 'Close matches below your Exact setting.'
+								: 'Low similarity. These are usually wrong.'
+						}
 						value={showWeak}
 						onValueChange={setShowWeak}
 					/>
 				</ActionSheetRow.Group>
 			)}
 			{web && <ImageNotes web={web} />}
-			<ProviderLines outcomes={outcomes} order={order} />
+			<ProviderLines outcomes={outcomes} order={order} filters={filters} />
 			{hidden !== '' && (
 				<Text variant="text-xs/normal" color="text-muted">
 					{hidden}
@@ -405,15 +412,17 @@ function RankedResults({
 function ProviderLines({
 	outcomes,
 	order,
+	filters,
 }: {
 	outcomes: ProviderOutcomes
 	order: ProviderId[]
+	filters?: ResultFilters
 }) {
 	return order.map(id => {
 		const outcome = outcomes[id]
 		return outcome ? (
 			<Text key={id} variant="text-xs/normal" color="text-muted">
-				{providerStatus(id, outcome)}
+				{providerStatus(id, outcome, filters)}
 			</Text>
 		) : null
 	})
@@ -489,6 +498,7 @@ function ResultRow({ result }: { result: ProviderResult }) {
 			subLabel={[
 				matchLabel(result),
 				result.tier === 'possible' ? 'likely wrong' : '',
+				result.adult ? 'adult' : '',
 				ProviderNames[result.provider],
 				result.detail,
 			]

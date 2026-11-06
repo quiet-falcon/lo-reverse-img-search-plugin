@@ -3,7 +3,7 @@ import { VisionAvailable } from './features'
 import { readSavedImages } from './hash-list'
 import type { CommunityList } from './community-list'
 import type { SavedImage } from './hash-list'
-import type { ProviderId } from './types'
+import type { ProviderId, Tier } from './types'
 
 export type Settings = {
 	tracemoe: boolean
@@ -16,6 +16,12 @@ export type Settings = {
 	hashList: SavedImage[]
 	communityList: CommunityList
 	communityCheckedAt: number
+	entrySearch: boolean
+	entryProfile: boolean
+	entryLinks: boolean
+	entryViewer: boolean
+	minTier: Tier
+	hideAdult: boolean
 }
 
 export const DefaultSettings: Settings = {
@@ -29,9 +35,16 @@ export const DefaultSettings: Settings = {
 	hashList: [],
 	communityList: EmptyList,
 	communityCheckedAt: 0,
+	entrySearch: true,
+	entryProfile: true,
+	entryLinks: true,
+	entryViewer: true,
+	minTier: 'strong',
+	hideAdult: true,
 }
 
 const ProviderIds: ProviderId[] = ['tracemoe', 'saucenao', 'vision']
+const Tiers: Tier[] = ['exact', 'strong', 'possible']
 const KeyRe = /^[A-Za-z0-9]{20,64}$/
 const VisionKeyRe = /^[A-Za-z0-9_-]{30,64}$/
 
@@ -40,11 +53,15 @@ export const looksLikeKey = (key: string) => KeyRe.test(cleanKey(key))
 export const looksLikeVisionKey = (key: string) =>
 	VisionKeyRe.test(cleanKey(key))
 
+type FlagName = {
+	[Name in keyof Settings]: Settings[Name] extends boolean ? Name : never
+}[keyof Settings]
+
 export function readSettings(value: unknown): Settings {
 	if (typeof value !== 'object' || value === null) return { ...DefaultSettings }
 
 	const raw = value as Record<string, unknown>
-	const flag = (name: 'tracemoe' | 'saucenao' | 'vision' | 'visionText') =>
+	const flag = (name: FlagName) =>
 		typeof raw[name] === 'boolean' ? raw[name] : DefaultSettings[name]
 
 	return {
@@ -62,6 +79,13 @@ export function readSettings(value: unknown): Settings {
 		communityList: readStoredList(raw.communityList),
 		communityCheckedAt:
 			typeof raw.communityCheckedAt === 'number' ? raw.communityCheckedAt : 0,
+		entrySearch: flag('entrySearch'),
+		entryProfile: flag('entryProfile'),
+		entryLinks: flag('entryLinks'),
+		entryViewer: flag('entryViewer'),
+		minTier:
+			Tiers.find(tier => tier === raw.minTier) ?? DefaultSettings.minTier,
+		hideAdult: flag('hideAdult'),
 	}
 }
 

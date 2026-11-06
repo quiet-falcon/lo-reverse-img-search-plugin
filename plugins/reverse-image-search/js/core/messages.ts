@@ -81,9 +81,24 @@ export function joinNames(ids: ProviderId[]) {
 	return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 }
 
-export function visibleResults(results: ProviderResult[], showWeak = false) {
-	const safe = results.filter(result => !result.adult)
-	const strong = safe.filter(result => result.tier !== 'possible')
+export interface ResultFilters {
+	minTier: Tier
+	hideAdult: boolean
+}
+
+const DefaultFilters: ResultFilters = { minTier: 'strong', hideAdult: true }
+const TierOrder: Tier[] = ['exact', 'strong', 'possible']
+
+const meetsTier = (tier: Tier, minimum: Tier) =>
+	TierOrder.indexOf(tier) <= TierOrder.indexOf(minimum)
+
+export function visibleResults(
+	results: ProviderResult[],
+	showWeak = false,
+	{ minTier, hideAdult }: ResultFilters = DefaultFilters,
+) {
+	const safe = hideAdult ? results.filter(result => !result.adult) : results
+	const strong = safe.filter(result => meetsTier(result.tier, minTier))
 	const shown = showWeak ? safe : strong
 
 	return {
@@ -104,14 +119,16 @@ export function hiddenSummary(weak: number, adult: number, showWeak: boolean) {
 }
 
 // One line per provider, so a failure never hides behind another's results
-export function providerStatus(id: ProviderId, outcome: ProviderOutcome) {
+export function providerStatus(
+	id: ProviderId,
+	outcome: ProviderOutcome,
+	filters: ResultFilters = DefaultFilters,
+) {
 	const name = ProviderNames[id]
 	if (outcome.kind === 'error')
 		return `${name}: ${errorMessage(outcome.category, name)}`
 
-	const confident = outcome.results.filter(
-		result => result.tier !== 'possible' && !result.adult,
-	).length
+	const confident = visibleResults(outcome.results, false, filters).shown.length
 	const found =
 		confident === 0
 			? 'no confident match'

@@ -5,6 +5,7 @@ import { openReport } from '../adapters/external'
 import { hashTarget } from '../adapters/hash-check'
 import { updateSettings, useSettings } from '../adapters/settings-store'
 import { communitySignal, findCommunityMatch } from '../core/community-list'
+import { ReportAvailable } from '../core/features'
 import {
 	addSaved,
 	findMatch,
@@ -109,11 +110,13 @@ export function HashCheck({ target, owner }: HashCheckProps) {
 					subLabel="Keeps a small picture and a fingerprint on your phone."
 					onPress={busy ? undefined : () => run('save')}
 				/>
-				<ActionSheetRow
-					label="Report to community list"
-					subLabel="Opens a public GitHub issue with only this image's fingerprint."
-					onPress={busy ? undefined : () => run('report')}
-				/>
+				{ReportAvailable && (
+					<ActionSheetRow
+						label="Report to community list"
+						subLabel="Opens a public GitHub issue with only this image's fingerprint."
+						onPress={busy ? undefined : () => run('report')}
+					/>
+				)}
 			</ActionSheetRow.Group>
 			{result?.signal && <SignalStrip signals={[result.signal]} />}
 			{result?.match && (

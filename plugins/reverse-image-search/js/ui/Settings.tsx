@@ -20,9 +20,18 @@ import { ProbeSection } from './ProbeSettings'
 import type { PluginSettingsComponent } from '@valenced/plugins/types'
 import type { ComponentProps } from 'react'
 import type { Settings as SettingsData } from '../core/settings'
+import type { Tier } from '../core/types'
 
-const { Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } =
-	Design
+const {
+	Stack,
+	TableRadioGroup,
+	TableRadioRow,
+	TableRow,
+	TableRowGroup,
+	TableSwitchRow,
+	Text,
+	TextInput,
+} = Design
 
 type SettingsProps = ComponentProps<
 	PluginSettingsComponent<{ jsonStorage: SettingsData }>
@@ -215,6 +224,74 @@ export default function Settings({ api: { plugin } }: SettingsProps) {
 							</TableRowGroup>
 						</Stack>
 					)}
+
+					<TableRowGroup title="Menu rows">
+						<TableSwitchRow
+							label="Search Image"
+							subLabel="Long-press menu, on messages with images."
+							value={settings.entrySearch}
+							onValueChange={(entrySearch: boolean) =>
+								updateSettings({ entrySearch })
+							}
+						/>
+						<TableSwitchRow
+							label="Check Profile"
+							subLabel="Long-press menu, on every message."
+							value={settings.entryProfile}
+							onValueChange={(entryProfile: boolean) =>
+								updateSettings({ entryProfile })
+							}
+						/>
+						<TableSwitchRow
+							label="Check Links"
+							subLabel="Long-press menu, on messages with links."
+							value={settings.entryLinks}
+							onValueChange={(entryLinks: boolean) =>
+								updateSettings({ entryLinks })
+							}
+						/>
+						<TableSwitchRow
+							label="Viewer button"
+							subLabel="Search button when you open an image."
+							value={settings.entryViewer}
+							onValueChange={(entryViewer: boolean) =>
+								updateSettings({ entryViewer })
+							}
+						/>
+					</TableRowGroup>
+
+					<TableRadioGroup
+						title="Minimum match to show"
+						defaultValue={settings.minTier}
+						onChange={(minTier: Tier) => updateSettings({ minTier })}
+					>
+						<TableRadioRow
+							value="exact"
+							label="Exact only"
+							subLabel="Fewest results, and the most reliable."
+						/>
+						<TableRadioRow
+							value="strong"
+							label="Strong and above"
+							subLabel="Recommended."
+						/>
+						<TableRadioRow
+							value="possible"
+							label="Everything"
+							subLabel="Includes low matches, which are usually wrong."
+						/>
+					</TableRadioGroup>
+
+					<TableRowGroup title="Result filter">
+						<TableSwitchRow
+							label="Hide adult results"
+							subLabel="Uses the adult flags from trace.moe and SauceNAO."
+							value={settings.hideAdult}
+							onValueChange={(hideAdult: boolean) =>
+								updateSettings({ hideAdult })
+							}
+						/>
+					</TableRowGroup>
 
 					<TableRowGroup title="My list">
 						{settings.hashList.length === 0 && (

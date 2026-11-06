@@ -209,6 +209,31 @@ describe('visibleResults', () => {
 		expect(adult).toBe(1)
 	})
 
+	test('follows the minimum match setting', () => {
+		const all = [result('exact'), result('strong'), result('possible')]
+		const hideAdult = true
+
+		expect(
+			visibleResults(all, false, { minTier: 'exact', hideAdult }).shown,
+		).toHaveLength(1)
+		expect(
+			visibleResults(all, false, { minTier: 'exact', hideAdult }).weak,
+		).toBe(2)
+		expect(
+			visibleResults(all, false, { minTier: 'possible', hideAdult }).shown,
+		).toHaveLength(3)
+	})
+
+	test('can show adult results when the filter is off', () => {
+		const { shown, adult } = visibleResults([result('exact', true)], false, {
+			minTier: 'strong',
+			hideAdult: false,
+		})
+
+		expect(shown).toHaveLength(1)
+		expect(adult).toBe(0)
+	})
+
 	test('summarises what is hidden', () => {
 		expect(hiddenSummary(3, 1, false)).toBe('3 weaker and 1 adult hidden.')
 		expect(hiddenSummary(3, 0, true)).toBe('')

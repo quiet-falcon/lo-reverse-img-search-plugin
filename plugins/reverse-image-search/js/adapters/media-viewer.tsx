@@ -5,6 +5,7 @@ import { targetFromViewer } from '../core/target'
 import { describeTree, findOverlayButton, insertBefore } from '../core/tree'
 import { openSearchSheet } from '../ui/SearchSheet'
 import { searchIcon } from './icons'
+import { currentSettings } from './settings-store'
 import type { ComponentType } from 'react'
 
 type Header = (props: { source?: unknown }) => unknown
@@ -52,6 +53,8 @@ function addSearchButton(
 	source: unknown,
 	onStatus?: ViewerStatus,
 ) {
+	if (!currentSettings().entryViewer) return onStatus?.('turned off')
+
 	const target = targetFromViewer(source)
 	if (!target) return onStatus?.('no image in viewer')
 
