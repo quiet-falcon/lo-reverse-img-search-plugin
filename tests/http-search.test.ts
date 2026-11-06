@@ -381,6 +381,59 @@ describe('searchImage', () => {
 		})
 	})
 
+	test('sends the Vision key only to Vision, in a header', async () => {
+		const Key = `AIza${'x'.repeat(35)}`
+		FakeXhr.respond = xhr => {
+			if (xhr.url.includes('vision.googleapis.com'))
+				return xhr.succeed(
+					200,
+					JSON.stringify({
+						responses: [
+							{
+								webDetection: {
+									pagesWithMatchingImages: [{ url: 'https://a.example/' }],
+								},
+							},
+						],
+					}),
+				)
+			xhr.succeed(200, Jpeg.buffer)
+		}
+		const { promise, outcomes } = run(target(), [
+			{ id: 'vision', key: Key, text: true },
+		])
+		await promise
+
+		const vision = FakeXhr.instances.find(xhr =>
+			xhr.url.includes('vision.googleapis.com'),
+		)!
+		expect(vision.headers['x-goog-api-key']).toBe(Key)
+		expect(vision.url).not.toContain(Key)
+		expect(
+			FakeXhr.instances.filter(xhr => xhr !== vision).map(xhr => xhr.headers),
+		).toEqual([{}])
+		expect(outcomes[0]).toMatchObject({
+			outcomes: { vision: { kind: 'results' } },
+		})
+	})
+
+	test('stops an image too big for Vision before upload', async () => {
+		const huge = new Uint8Array(7 * 1024 * 1024 + 1)
+		huge.set(Jpeg)
+		FakeXhr.respond = xhr => xhr.succeed(200, huge.buffer)
+		const { promise, outcomes } = run(target(), [
+			{ id: 'vision', key: 'k'.repeat(39), text: false },
+		])
+		await promise
+
+		expect(FakeXhr.instances.some(xhr => xhr.url.includes('googleapis'))).toBe(
+			false,
+		)
+		expect(outcomes[0]).toMatchObject({
+			outcomes: { vision: { kind: 'error', category: 'too-large' } },
+		})
+	})
+
 	test("keeps one provider's results when the other fails", async () => {
 		FakeXhr.respond = xhr => {
 			if (xhr.url.includes('trace.moe')) return xhr.succeed(429, '')

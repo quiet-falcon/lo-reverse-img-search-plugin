@@ -21,7 +21,7 @@ export function multipartFile(
 export const randomBoundary = () =>
 	`----ris${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
 
-function ascii(text: string) {
+export function ascii(text: string) {
 	const out = new Uint8Array(text.length)
 	for (let index = 0; index < text.length; index++) {
 		const code = text.charCodeAt(index)

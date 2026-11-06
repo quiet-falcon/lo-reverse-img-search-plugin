@@ -17,7 +17,7 @@ This repository builds a reverse image search (RIS) plugin for [Valenced](https:
 1. The user picks an image from a message or the media viewer.
 2. The plugin refreshes the signed URL if needed, then asks Discord's media proxy for a normalised image.
 3. It downloads that image with hard limits and checks its real type from its bytes.
-4. It uploads the image directly to the API providers the user chose: trace.moe, SauceNAO, and Google Cloud Vision Web Detection.
+4. It uploads the image directly to the API providers the user chose: trace.moe and SauceNAO.
 5. It merges the answers into one native results sheet.
 6. Lens, Yandex, Bing, TinEye, and others stay available as one-tap browser hand-offs.
 
@@ -25,7 +25,7 @@ This repository builds a reverse image search (RIS) plugin for [Valenced](https:
 
 - It removes the failure that ended the old plugin. Providers never need to fetch Discord's CDN for in-app results, so signed URLs and `application/octet-stream` stop mattering.
 - It leaks less. A URL exposes channel, attachment, and filename details. An upload named `image.jpg` does not.
-- It covers more image types. trace.moe handles anime frames, SauceNAO handles art, and Vision handles the general web.
+- It covers anime and art in the app, and browser hand-offs cover everything else. trace.moe handles anime frames, and SauceNAO handles art.
 - It uses documented APIs for in-app results, so routine Discord or website changes are less likely to break it.
 - It needs no server, no scraping, and no native build.
 
@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.3.0-alpha3",
+	"version": "0.4.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -283,6 +283,7 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `session.ts`: Search state machine with cancellation.
 - `fusion.ts`: Tiering, dedupe, and ranking.
 - `copy-check.ts`: Counts sites and sets the copy band from Vision's lists.
+- `base64.ts`: Encodes image bytes for Vision.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
 - `acquire.ts`: Lists the download URLs to try, in order.
@@ -362,7 +363,9 @@ Show a picker when a message has more than one image. Spoilered images stay blur
 | --- | --- | --- | --- | --- | --- |
 | trace.moe | On | None | Anime screenshots | `POST https://api.trace.moe/search?anilistInfo&cutBorders`, raw image bytes with the sniffed `Content-Type` | [S] [Docs](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/docs.md), [limits](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/limits.md) |
 | SauceNAO | On when a key exists | Free | Art, manga, booru | `POST https://saucenao.com/search.php`, query `output_type=2`, `api_key`, `db=999`, `numres=8`, `hide`, multipart field `file` | [C] [PicImageSearch](https://github.com/kitUIN/PicImageSearch/blob/784713e546273a09aae4b247a8b6f798825efafa/PicImageSearch/engines/saucenao.py) |
-| Cloud Vision Web Detection | Off | Your own Google Cloud key | Photos, memes, screenshots, products | `POST https://vision.googleapis.com/v1/images:annotate`, header `x-goog-api-key`, features `WEB_DETECTION` and `TEXT_DETECTION`, base64 image | [Request and response](https://docs.cloud.google.com/vision/docs/detecting-web) [S], [key header](https://docs.cloud.google.com/docs/authentication/api-keys-use) [S], [pricing](https://cloud.google.com/vision/docs/pricing?hl=es) [S], [size limits](https://docs.cloud.google.com/vision/docs/supported-files) [S], live call [A, gate P4] |
+| Cloud Vision Web Detection | Parked, hidden | Your own Google Cloud key | Photos, memes, screenshots, products | `POST https://vision.googleapis.com/v1/images:annotate`, header `x-goog-api-key`, features `WEB_DETECTION` and `TEXT_DETECTION`, base64 image | [Request and response](https://docs.cloud.google.com/vision/docs/detecting-web) [S], [key header](https://docs.cloud.google.com/docs/authentication/api-keys-use) [S], [pricing](https://cloud.google.com/vision/docs/pricing?hl=es) [S], [size limits](https://docs.cloud.google.com/vision/docs/supported-files) [S], live call [A, parked with Vision] |
+
+**Google Vision is parked.** Sensei skipped it on 2026-11-06 because it needs a billing account and is probably weaker than Lens. Its code stays in the repo and in the tests, hidden by `VisionAvailable` in `core/features.ts`. No live call has been made. To bring it back, set that to `true`, then run the Vision checks in `docs/compatibility.md`.
 
 Provider facts:
 
@@ -378,6 +381,7 @@ Provider facts:
 - [S] Vision limits: 20 MB per image and 10 MB per JSON request.
 - [S] The Vision API and billing must both be enabled on the Google Cloud project.
 - [S] `pageTitle` can contain HTML tags, so strip them before showing it.
+- [A, parked with Vision] Vision JSON requests work from the phone, and encoding a normal image doesn't visibly freeze the app.
 - [S] Web Detection returns lists only: `fullMatchingImages`, `partialMatchingImages`, `pagesWithMatchingImages`, `visuallySimilarImages`, `webEntities`, and `bestGuessLabels`. It has no total-count field.
 
 Research limit: no live provider call has been made yet, and SauceNAO's official API page could not be reached. Its contract above comes from a maintained client library. Confirm it before relying on it.
@@ -411,13 +415,13 @@ Answers one question: has this image been used across the web? It is for spottin
 
 Evidence: [Vision fields](https://docs.cloud.google.com/dotnet/docs/reference/Google.Cloud.Vision.V1/latest/Google.Cloud.Vision.V1.WebDetection) [S], [TinEye totals and sorting](https://help.tineye.com/article/265-tineye-tutorial) [S].
 
-**In-app route, Vision key required.** The search sheet gets a **Check copies with Google Vision** button. It sends the image to Vision only.
+**In-app route, parked with Vision.** The search sheet gets a **Check copies with Google Vision** button. It sends the image to Vision only.
 
 - Count distinct sites by hostname from `pagesWithMatchingImages`.
 - Show exact copies from `fullMatchingImages` and edited or cropped copies from `partialMatchingImages` as separate numbers.
 - Ignore `visuallySimilarImages`, because a similar image is not a copy.
 - Vision has no total, so always write the count as "at least". If a list reaches the requested limit, say more may exist.
-- Request 50 results. [A, gate P4] Confirm the effect of `maxResults` on Web Detection.
+- Request 50 results. [A, parked with Vision] Confirm the effect of `maxResults` on Web Detection.
 
 | Band | Distinct sites | Label |
 | --- | --- | --- |
@@ -428,7 +432,7 @@ Evidence: [Vision fields](https://docs.cloud.google.com/dotnet/docs/reference/Go
 
 Band limits are starting values. [A, gate P10] Tune them with real results.
 
-**Free route.** TinEye shows a total match count at the top of its page and can sort by oldest, so its hand-off row says **See total and oldest copy**. Lens is the second choice.
+**Free route, the current one.** TinEye shows a total match count at the top of its page and can sort by oldest, so its hand-off row says **See total and oldest copy**. Lens is the second choice.
 
 Display rules:
 
@@ -550,7 +554,7 @@ Never log URLs, keys, filenames, message content, raw provider bodies, or user I
 4. Tap **Search with trace.moe and SauceNAO**. The button names the actual providers.
 5. See a best match, ranked results, and provider status.
 
-To check a profile photo, tap **Check copies with Google Vision** instead at step 4. Without a key, the sheet points to the TinEye and Lens hand-offs.
+To check a profile photo, tap **Check Profile** on a message, then use the TinEye and Lens hand-offs.
 
 After setup, a normal search takes two taps from the long-press sheet: **Search Image**, then **Search**.
 
@@ -770,48 +774,53 @@ Acceptance:
 
 ### P4: Cloud Vision
 
-Work:
+Vision, the copy check, and text reading are built and tested in CI, then parked. See section 8.
 
-- Add Vision as an opt-in provider, and verify the documented contract with a live call.
-- Add the copy check and its TinEye fallback.
-- Add `TEXT_DETECTION`, so watermarks and baked-in handles show without an OCR library. This replaces the corner-edge watermark heuristic.
-- Add short use labels to the hand-off rows, and open TinEye sorted by oldest.
+Work still live from this phase:
+
+- Short use labels on the hand-off rows.
+- TinEye opens sorted by oldest. **Link passed on 2026-11-06.**
 
 Acceptance:
 
-- Works with a user-supplied key.
-- Setup text explains billing and cost.
+- The TinEye row opens sorted by oldest on the phone.
+- Hand-off rows show their labels.
+- No Vision setting, row, or request appears.
+
+Parked Vision acceptance, for when it returns:
+
+- Works with a user-supplied key, and setup text explains billing and cost.
 - Fully matching pages rank above visually similar images.
-- A photo or meme returns useful in-app results.
 - A widely used test image shows the right band, with counts written as "at least".
 - A freshly taken test photo shows No copies found, and **What this means** explains the limits.
 - An image with a visible watermark shows its text.
 
 ### P5: Profile check
 
-Reports signals about an image, an account, and its links. Signals sit in their own strip, separate from `fusion.ts`, which only ranks search results.
+Reports signals about an image and an account. Signals sit in their own strip, separate from `fusion.ts`, which only ranks search results.
 
 Work:
 
-- `core/signals.ts`, `ui/SignalStrip.tsx`, and `ui/SignalRow.tsx`.
+- `core/signals.ts`, plus `ui/SignalStrip.tsx` with one labelled, icon-led row per signal.
 - A **Check Profile** row in the long-press message sheet, using the message author. A profile sheet entry can follow once a probe finds it.
 - Account age in `core/account-age.ts`: `Math.floor(Number(id) / 4194304) + 1420070400000`. [S] [Discord docs](https://docs.discord.com/developers/reference). Dividing keeps this accurate without BigInt.
-- Avatar and banner targets in `adapters/profile.ts`, using `.png?size=` on Discord's CDN. Skip default avatars.
-- Run the copy check on avatars and banners.
-- Wayback first capture in `providers/wayback.ts`, for the top matching pages: `https://web.archive.org/cdx/search/cdx?url=<page>&output=json&limit=1`. Label it "page first archived", because it dates the page rather than the image.
-- A mismatch signal when a matching page was archived before the account existed.
+- Avatar and banner targets in `core/profile.ts` and `adapters/profile.ts`, using `.png?size=1024` on Discord's CDN. Skip default avatars and webhooks.
+- Those targets open the normal search sheet, so hand-offs and in-app providers all work on them.
+- Show the account's creation date, so it can be compared by hand with TinEye's oldest copy.
 - AI check, in two layers:
-  - Local tags, such as C2PA or Stable Diffusion `parameters` text. [A, gate P5] Test what survives Discord's upload first.
-  - A SynthID browser row. A hit is strong, and a miss means nothing.
-- Never read or show GPS or location fields.
+  - Local tags in `core/image-tags.ts`: C2PA, IPTC AI labels, and generator settings such as Stable Diffusion `parameters`. It reads the original file from Discord, and nothing goes to an outside service. [A, gate 26] Test what survives Discord's upload.
+  - A SynthID browser row. A hit is strong, and a miss means nothing. [C] Its public checker is [reported at synthid.com](https://bestforandroid.com/radar/synthid-detector-went-public-check-photo-video-ai-watermarks/), with no public image API, so it is a manual upload.
+- Never read or show GPS or location fields. The tag scan skips EXIF entirely.
 
 Sightengine was scrapped on 2026-11-06, so there is no AI score provider. New AI detection needs Sensei's approval.
+
+The Wayback mismatch signal is parked with Vision, because it needs Vision's page list. The CDX link itself passed on 2026-11-06.
 
 Acceptance:
 
 - A message author's account age shows with no network call.
-- Avatar and banner copy checks work on a real profile.
-- A matching page older than the account shows the mismatch signal.
+- Avatar and banner hand-offs work on a real profile.
+- A PNG with Stable Diffusion text shows its tag, if the tag survives upload.
 - Every signal has a text label and an icon.
 
 ### P6: Local hash list
@@ -863,15 +872,7 @@ Acceptance:
 
 ### P9: Crop and mirror search
 
-Work:
-
-- A region picker that crops or mirrors an image, then sends it to in-app providers.
-- Browser hand-offs can't take crops, because a crop has no public link.
-
-Acceptance:
-
-- A background crop can find a page the full image missed.
-- The UI says each search uses one Vision unit.
+Parked with Vision, because browser hand-offs can't take crops and the other in-app providers don't search photos. Skip to P10.
 
 ### P10: Polish and release
 
@@ -957,16 +958,17 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 14 | Do providers accept uploads from the phone's network? | Passed for trace.moe and SauceNAO | Show the provider error and keep hand-offs |
 | 15 | SauceNAO limits and keyless behaviour | Partly passed: limited after 5 quick searches, daily count fell 94 to 92. Keyless still untested | Keep the key required |
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |
-| 17 | Vision REST shape and billing requirement | P4 | Keep Vision off, or drop it |
+| 17 | Vision REST shape and billing requirement | Parked with Vision | Keep Vision off, or drop it |
 | 18 | Do thresholds match real results? | P10 | Retune them |
 | 19 | Does the Pages update run from the release workflow? | P7 | Add a deployment job |
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
-| 21 | Does `maxResults` raise Web Detection's list sizes? | P4 | Use the default size and keep "at least" wording |
+| 21 | Does `maxResults` raise Web Detection's list sizes? | Parked with Vision | Use the default size and keep "at least" wording |
 | 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
 | 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | Passed, 2026-11-06 | Write a temp file and use `FormData` with its URI, as PetPet does |
 | 24 | Does TinEye's site honour `sort=crawl_date&order=asc`? | Passed, 2026-11-06 | Keep the plain link |
 | 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
 | 26 | Which metadata survives Discord's upload? | P5 | Drop local tag checks |
+| 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | P5 | Use `getAvatarURL`, and leave banners out |
 | 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | P6 | Vendor the decoder |
 | 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
 | 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |

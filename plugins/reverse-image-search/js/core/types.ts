@@ -12,7 +12,7 @@ export interface ImageTarget {
 
 export type Tier = 'exact' | 'strong' | 'possible'
 
-export type ProviderId = 'tracemoe' | 'saucenao'
+export type ProviderId = 'tracemoe' | 'saucenao' | 'vision'
 
 export interface ProviderResult {
 	provider: ProviderId
@@ -22,6 +22,24 @@ export interface ProviderResult {
 	tier: Tier
 	url?: string
 	adult: boolean
+	noScore?: boolean
+}
+
+export interface PageMatch {
+	url: string
+	site: string
+	title: string
+	exact: boolean
+}
+
+export interface WebFindings {
+	pages: PageMatch[]
+	exactCopies: number
+	editedCopies: number
+	capped: boolean
+	bestGuess: string
+	entities: string[]
+	text: string
 }
 
 export type ErrorCategory =
@@ -34,10 +52,16 @@ export type ErrorCategory =
 	| 'timeout'
 	| 'refresh-failed'
 	| 'bad-key'
+	| 'needs-setup'
 	| 'unexpected'
 
 export type ProviderOutcome =
-	| { kind: 'results'; results: ProviderResult[]; quotaLeft?: number }
+	| {
+			kind: 'results'
+			results: ProviderResult[]
+			quotaLeft?: number
+			web?: WebFindings
+	  }
 	| { kind: 'error'; category: ErrorCategory }
 
 export type ProviderOutcomes = Partial<Record<ProviderId, ProviderOutcome>>
