@@ -1,4 +1,6 @@
 import { VisionAvailable } from './features'
+import { readSavedImages } from './hash-list'
+import type { SavedImage } from './hash-list'
 import type { ProviderId } from './types'
 
 export type Settings = {
@@ -9,6 +11,7 @@ export type Settings = {
 	visionKey: string
 	visionText: boolean
 	consented: ProviderId[]
+	hashList: SavedImage[]
 }
 
 export const DefaultSettings: Settings = {
@@ -19,6 +22,7 @@ export const DefaultSettings: Settings = {
 	visionKey: '',
 	visionText: true,
 	consented: [],
+	hashList: [],
 }
 
 const ProviderIds: ProviderId[] = ['tracemoe', 'saucenao', 'vision']
@@ -48,6 +52,7 @@ export function readSettings(value: unknown): Settings {
 		consented: Array.isArray(raw.consented)
 			? ProviderIds.filter(id => (raw.consented as unknown[]).includes(id))
 			: [],
+		hashList: readSavedImages(raw.hashList),
 	}
 }
 

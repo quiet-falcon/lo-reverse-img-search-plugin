@@ -26,6 +26,12 @@ An avatar or banner link includes that user's ID.
 
 **Open SynthID checker** opens Google's site in your browser. The plugin sends it nothing, and you choose whether to upload the image.
 
+## My list
+
+**Check my list** and **Save to my list** download a small copy of the image from Discord and work it out on your phone. Nothing goes to an outside service. A saved image is a fingerprint, a label, a date, and a small picture, stored as plain text in this plugin's settings file. Other plugins may be able to read it. Settings lets you remove any entry.
+
+Profile pictures and banners check your list by themselves once it has entries, which only contacts Discord.
+
 ## Device probe
 
 Dev builds keep version numbers, sheet keys, and field names in memory, including the field names of user records. They never read field values, and the report clears on reload.

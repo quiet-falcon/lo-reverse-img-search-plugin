@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import type { ProviderSpec } from '../plugins/reverse-image-search/js/core/settings'
 
 type Handler = (() => void) | null
@@ -79,6 +80,9 @@ const { createSearchSession } = await import(
 )
 const { checkImageTags } = await import(
 	'../plugins/reverse-image-search/js/adapters/image-check'
+)
+const { hashTarget } = await import(
+	'../plugins/reverse-image-search/js/adapters/hash-check'
 )
 
 const Fresh =
@@ -528,6 +532,38 @@ describe('checkImageTags', () => {
 	test('cancel drops a late result', async () => {
 		const session = createSearchSession()
 		const pending = checkImageTags(session, target())
+		await Promise.resolve()
+		session.cancel()
+
+		expect(await pending).toBeUndefined()
+	})
+})
+
+describe('hashTarget', () => {
+	const Png = new Uint8Array(
+		readFileSync(new URL('./fixtures/pdq/scene-a.png', import.meta.url)),
+	)
+
+	test('fetches from Discord only, then hashes on the phone', async () => {
+		FakeXhr.respond = xhr => xhr.succeed(200, Png.buffer)
+		const outcome = await hashTarget(createSearchSession(), target())
+
+		expect(FakeXhr.instances).toHaveLength(1)
+		expect(FakeXhr.instances[0]!.url).toContain('format=png')
+		expect(outcome).toMatchObject({ kind: 'hash', image: { quality: 100 } })
+	})
+
+	test('falls back to the original, then reports a bad image', async () => {
+		FakeXhr.respond = xhr => xhr.succeed(200, Jpeg.buffer)
+		const outcome = await hashTarget(createSearchSession(), target())
+
+		expect(FakeXhr.instances).toHaveLength(2)
+		expect(outcome).toEqual({ kind: 'error', category: 'bad-image' })
+	})
+
+	test('cancel drops a late result', async () => {
+		const session = createSearchSession()
+		const pending = hashTarget(session, target())
 		await Promise.resolve()
 		session.cancel()
 

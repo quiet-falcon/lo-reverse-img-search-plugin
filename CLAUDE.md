@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.5.0-alpha1",
+	"version": "0.6.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -289,6 +289,9 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `profile.ts`: Reads a message author, then builds avatar and banner targets and signals.
 - `signals.ts`: Signal type and wording.
 - `image-tags.ts`: Finds AI tags in PNG, JPEG, and WebP metadata. It returns fixed labels only and never parses EXIF.
+- `inflate.ts` and `pixels.ts`: Read PNGs with no outside package, and build small thumbnails.
+- `pdq.ts`: PDQ hash, quality, flips, and distance. Tests match the reference tool exactly.
+- `hash-list.ts`: The saved list, matching, and its signals.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
 - `acquire.ts`: Lists the download URLs to try, in order.
@@ -328,6 +331,7 @@ Providers build plain request data and parse plain text. Only `adapters/http.ts`
 - `external.ts`: Lists hand-offs and opens them. Keeps provider URLs out of the UI.
 - `profile.ts`: Reads the author from Discord's stores, with every store guarded.
 - `image-check.ts`: Downloads an original file from Discord and reads its tags.
+- `hash-check.ts`: Downloads a small PNG from Discord and hashes it on the phone.
 - `icons.ts`: Finds the search icon, with a fallback. [S] `lookupGeneratedIconComponent` treats extra arguments as one icon's asset names, so each fallback name needs its own call.
 
 ### Search states
@@ -540,6 +544,7 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 | Browser hand-off | The image URL goes to that provider, including channel ID, attachment ID, filename, and a temporary access signature |
 | Avatar or banner hand-off | The image URL goes to that provider, including the user's ID |
 | AI tag check | The file downloads from Discord only, and nothing goes to outside services |
+| My list | The image downloads from Discord only, and its hash and small thumbnail stay on the phone |
 | URL refresh | The attachment URL goes to Discord, as normal client traffic |
 | Result thumbnails | Your IP address goes to the host serving each thumbnail |
 
@@ -838,10 +843,11 @@ Acceptance:
 
 Work:
 
-- `core/pdq.ts` and `core/pixels.ts`: PDQ 256-bit hash, quality score, mirror hashes, and distance, in pure TypeScript.
-- Hash a small PNG from Discord, so one decoder covers every format and the JS thread stays free.
-- One-tap **Save to my list**, kept on the device with a private thumbnail for side-by-side comparison.
-- Start at distance 30 or less and quality 50 or more. [A, gate P10] Tune these with real images.
+- `core/pdq.ts` and `core/pixels.ts`: PDQ 256-bit hash, quality score, mirror hashes, and distance, in pure TypeScript. **Built.** Hashes and quality match `pdqhash` exactly on the fixtures.
+- Hash a small PNG from Discord, so one decoder covers every format and the JS thread stays free. **Built**, with no npm packages.
+- One-tap **Save to my list**, kept on the device with a private thumbnail for side-by-side comparison. **Built.** The limit is 100 images, and settings can remove them.
+- Profile images check the list by themselves when it has entries, because only Discord is contacted. **Built.**
+- Start at distance 30 or less and quality 50 or more. **Built.** [A, gate P10] Tune these with real images.
 
 Findings from 2026-11-06, on a small stock image set: 64-bit pHash missed mirrors, and neither hash handled crops. This list catches reused images, while Vision's partial matches cover crops.
 
@@ -851,6 +857,8 @@ Acceptance:
 - A recompressed, resized, and mirrored copy of a saved image matches.
 - Flat, low-detail images are rejected by the quality score.
 - Hashing doesn't visibly freeze the app on the Motorola G40s.
+
+**P6 passed on 2026-11-06** with alpha1. See `docs/compatibility.md`.
 
 ### P7: Community list
 
@@ -979,10 +987,11 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 24 | Does TinEye's site honour `sort=crawl_date&order=asc`? | Passed, 2026-11-06 | Keep the plain link |
 | 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
 | 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived, JPEG XMP did not, one upload each | Drop local tag checks |
-| 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | P6 | Vendor the decoder |
-| 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
+| 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | Not needed: the plugin has its own PNG decoder | None |
+| 28 | Is PDQ fast enough on the phone? | Passed, 2026-11-06 | Use a smaller image, or hash in slices |
 | 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
 | 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
+| 31 | Does the media proxy return a PNG with `format=png`? | Passed, 2026-11-06 | Fall back to original PNGs, and say other formats can't be saved |
 
 Limitations already known:
 
