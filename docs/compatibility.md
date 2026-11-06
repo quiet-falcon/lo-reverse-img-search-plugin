@@ -144,9 +144,9 @@ Google Vision was skipped by Sensei on 2026-11-06, before any live call. Its che
 
 | Check | Result |
 | --- | --- |
-| TinEye row opens sorted by oldest | Not run |
-| Hand-off rows show their labels | Not run |
-| No Vision setting or row appears | Not run |
+| TinEye row opens sorted by oldest | Passed on the phone, reported by Sensei |
+| Hand-off rows show their labels | Passed, seen in Sensei's screenshots |
+| No Vision setting or row appears | Passed on the phone, reported by Sensei |
 
 Run these when Vision returns:
 
@@ -210,3 +210,40 @@ Gates closed by this run:
 | --- | --- | --- |
 | 28 | Is PDQ fast enough on the phone? | Passed |
 | 31 | Does the media proxy return a PNG with `format=png`? | Passed: PNG and JPEG uploads both hashed |
+
+## P7 device checks
+
+Tested with `0.7.0-alpha1` (commit `6bc8dc8`) on 2026-11-06, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `faabd2d0de11a865353aaeaa847ccb2f0d843f91d065b5463e0148df5106cb88`.
+
+| Check | Result |
+| --- | --- |
+| First signed list publishes from Actions | Passed |
+| Plugin code verifies the published list, and rejects a changed message | Passed off device |
+| Update community list on the phone | Passed, reported by Sensei |
+| Second update says already up to date | Passed, screenshot: 0.2 seconds |
+| Report becomes a PR | Not run: skipped by Sensei |
+| Merged report reaches the phone and matches | Not run: skipped by Sensei |
+| False entry can be removed | Not run: skipped by Sensei |
+
+Gates closed by this run:
+
+| # | Question | Status |
+| --- | --- | --- |
+| 32 | Does BigInt work on the phone, and how long does a signature check take? | Passed: a full check, including the network, took 0.2 seconds. The signature is verified before the version is compared |
+
+## P8 device checks
+
+Tested with `0.8.0-alpha2` (commit `71b2d5d`) on 2026-11-07, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `1a2489b55713cddc9b9ebd409c6ca9f05ce76a9092668c06faf7373b050337a8`. All seven test messages matched, as reported by Sensei.
+
+| Check | Result |
+| --- | --- |
+| Check Links row shows only on messages with links | Passed: a message with no link had no row |
+| Listed scam domain is flagged | Passed: `0pensea-gifts-013.vercel.app` |
+| Listed scam domain in spoiler bars is flagged | Passed: `dlscord-nitro.xyz` |
+| Lookalike is flagged | Passed: `disc0rd-gift-test.example` |
+| Host with a Cyrillic letter is flagged | Passed: `dіscord.com`, which uses U+0456 and encodes to `xn--dscord-pvf.com` |
+| Real Steam link is not flagged | Passed: `store.steampowered.com` |
+| Unrelated link shows no known risks | Passed: `github.com` |
+| Real Discord link is not flagged | Not run on a recorded build: covered by automated tests |
+| Daily community update runs after start | Not run: nothing on screen shows it, and the list hasn't changed since the manual update |
+

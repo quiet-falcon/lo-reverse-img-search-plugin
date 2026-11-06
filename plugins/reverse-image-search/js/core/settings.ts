@@ -15,6 +15,7 @@ export type Settings = {
 	consented: ProviderId[]
 	hashList: SavedImage[]
 	communityList: CommunityList
+	communityCheckedAt: number
 }
 
 export const DefaultSettings: Settings = {
@@ -27,6 +28,7 @@ export const DefaultSettings: Settings = {
 	consented: [],
 	hashList: [],
 	communityList: EmptyList,
+	communityCheckedAt: 0,
 }
 
 const ProviderIds: ProviderId[] = ['tracemoe', 'saucenao', 'vision']
@@ -58,6 +60,8 @@ export function readSettings(value: unknown): Settings {
 			: [],
 		hashList: readSavedImages(raw.hashList),
 		communityList: readStoredList(raw.communityList),
+		communityCheckedAt:
+			typeof raw.communityCheckedAt === 'number' ? raw.communityCheckedAt : 0,
 	}
 }
 
