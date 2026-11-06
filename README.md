@@ -9,12 +9,12 @@
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
-[Status](#project-status) · [Planned features](#planned-features) · [How it works](#how-it-will-work) · [Privacy](#privacy) · [Development](#development)
+[Status](#project-status) · [Features](#features) · [How it works](#how-it-will-work) · [Privacy](#privacy) · [Development](#development)
 
 </div>
 
 > [!IMPORTANT]
-> This plugin is in early development. The current build adds a **Search Image** row, a viewer button, and browser hand-offs to 8 engines. In-app anime results from trace.moe work on a real device. There is no public release so far.
+> This plugin is in early development. The current build has a **Search Image** row, a viewer button, browser hand-offs to 8 engines, and in-app results from trace.moe and SauceNAO, all working on a real device. There is no public release so far.
 
 ## Why it exists
 
@@ -30,36 +30,39 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
 | **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
-| **P4** | Google Cloud Vision and the copy check | ⬜ Not started |
-| **P5** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
+| **P4** | Google Cloud Vision, copy check, and image text | 🔨 In progress |
+| **P5** | Profile check: account age, avatars, banners, and AI tags | ⬜ Not started |
+| **P6** | Local image hash list | ⬜ Not started |
+| **P7** | Community hash list | ⬜ Not started |
+| **P8** | Link risk checks | ⬜ Not started |
+| **P9** | Crop and mirror search | ⬜ Not started |
+| **P10** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
 
 Each phase must pass before the next begins. Tested versions and evidence are recorded in [`docs/compatibility.md`](docs/compatibility.md).
 
-## Planned features
+## Features
 
-Everything in this section is planned, not yet built.
-
-### 🔎 Search from where you already are
+### 🔎 Search from where you already are ✅
 
 - Long-press a message and tap **Search Image**.
 - Pick one image when a message has several.
-- Add a button to the full-screen viewer, if device testing confirms the hook.
+- Use the button in the full-screen viewer.
 
 ### 🧠 One ranked results sheet
 
-| Image type | Provider | Result | Setup |
-| --- | --- | --- | --- |
-| Anime frame | [trace.moe](https://soruly.github.io/trace.moe-api/) | Title, episode, and timestamp | None |
-| Art or manga | [SauceNAO](https://saucenao.com/) | Artist and source page | Free API key |
-| Photo, meme, or screenshot | [Google Cloud Vision](https://cloud.google.com/vision) | Pages using the image | Your own API key |
+| Image type | Provider | Result | Setup | Status |
+| --- | --- | --- | --- | --- |
+| Anime frame | [trace.moe](https://soruly.github.io/trace.moe-api/) | Title, episode, and timestamp | None | ✅ Working |
+| Art or manga | [SauceNAO](https://saucenao.com/) | Artist and source page | Free API key | ✅ Working |
+| Photo, meme, or screenshot | [Google Cloud Vision](https://cloud.google.com/vision) | Pages using the image | Your own API key | 🔨 P4 |
 
 Provider scores aren't comparable, so results are ranked into **Exact**, **Strong**, and **Possible** tiers instead of being averaged. Each provider's status is always shown.
 
-### 🌐 One-tap browser hand-offs
+### 🌐 One-tap browser hand-offs ✅
 
-Google Lens, Yandex, Bing, TinEye, SauceNAO, IQDB, trace.moe, and ImgOps. Each row opens one engine, and engines that fail in testing get hidden.
+Google Lens, Yandex, Bing, TinEye, SauceNAO, IQDB, trace.moe, and ImgOps all work on a real device. Each row opens one engine, and TinEye opens sorted by oldest.
 
-### 🧾 Copy check
+### 🧾 Copy check 🔨
 
 Has this image been used across the web? The copy check helps you spot a profile photo that may be copied, or warn someone that their own photo is being reused.
 
@@ -70,9 +73,21 @@ Has this image been used across the web? The copy check helps you spot a profile
 | 5 to 19 | Found on several sites |
 | 20 or more | Widely used online |
 
-The check needs a Google Cloud Vision key. Without one, the TinEye hand-off shows a total match count and can sort by oldest. Vision returns lists rather than a total, so counts read "at least".
+The check needs a Google Cloud Vision key. Without one, the TinEye hand-off shows a total match count and the oldest copy. Vision returns lists rather than a total, so counts read "at least". It can also show what Google thinks the image is, plus any text in it, such as a watermark or a handle.
 
-The plugin never calls a photo stolen, fake, or safe, because it can't know that. Copies don't prove who owns a photo, and no copies doesn't prove it's real.
+Tap **What this means** for the limits. Copies don't prove who owns a photo, and no copies doesn't prove it's real.
+
+### 🕵️ Spotting scam profiles ⬜
+
+Planned, in build order:
+
+- **Profile check:** account age from the user ID, avatar and banner copy checks, and a flag when a matching page is older than the account.
+- **AI image signals:** local AI tags where Discord keeps them, plus a SynthID row in the browser.
+- **Hash lists:** save an image to your own list, then match reused copies on your device. A curated community list comes after that.
+- **Link risk:** flag known phishing domains and lookalikes of sites like `discord.com`.
+- **Crop and mirror search:** search just the background, or a flipped copy, with in-app providers.
+
+All of these appear as labelled signals in one strip, and each one says what it's based on.
 
 ## How it will work
 
@@ -99,13 +114,14 @@ The design is JavaScript only, with no server, no scraping for in-app results, a
 
 These rules are built into the project:
 
-- **You start every search.** Nothing is sent automatically or in the background.
+- **You start every upload.** Images only go to an outside service after you tap. Local checks and list updates can run on their own.
 - **You see who gets the image.** The button names each provider before anything leaves your device.
 - **Your Discord token stays out of it.** The plugin never reads, requests, or sends it.
 - **Your keys stay in settings.** They're never hard-coded, logged, or committed.
-- **There's no telemetry.** No analytics or hidden network calls.
-- **There's no bulk scanning.** No channel sweeps, background indexing, or self-bot behaviour.
-- **There's no face recognition.** The plugin matches pictures, not people, and won't use engines such as PimEyes.
+- **There's no telemetry.** No analytics, and every network host is listed in [`docs/privacy.md`](docs/privacy.md).
+- **There's no self-bot behaviour.** The plugin acts on what you tap.
+- **There's no face recognition.** The plugin won't use engines such as PimEyes.
+- **There's no location reading.** GPS and location fields are never read or shown.
 
 | Search path | What leaves your device |
 | --- | --- |
@@ -159,6 +175,7 @@ plugins/reverse-image-search/
 └── js/
     ├── index.ts        Lifecycle wiring
     ├── core/           Pure logic with no host imports
+    ├── providers/      Request builders and response parsers
     ├── adapters/       Discord and Valenced access
     └── ui/             React components
 tests/                  Unit and adapter tests
