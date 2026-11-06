@@ -1,8 +1,10 @@
 import { Design } from '@valenced/discord/design'
 import { useEffect, useRef, useState } from 'react'
 import { Image, View } from 'react-native'
+import { openReport } from '../adapters/external'
 import { hashTarget } from '../adapters/hash-check'
 import { updateSettings, useSettings } from '../adapters/settings-store'
+import { communitySignal, findCommunityMatch } from '../core/community-list'
 import {
 	addSaved,
 	findMatch,
@@ -44,7 +46,7 @@ export function HashCheck({ target, owner }: HashCheckProps) {
 	const isProfile = target.kind === 'avatar' || target.kind === 'banner'
 	const label = owner ? `${owner}, ${target.label}` : target.label
 
-	const run = async (save: boolean) => {
+	const run = async (action: 'check' | 'save' | 'report') => {
 		setResult(undefined)
 		setBusy(true)
 		const outcome = await hashTarget(session, target)
@@ -53,9 +55,24 @@ export function HashCheck({ target, owner }: HashCheckProps) {
 		if (outcome.kind === 'error') return setResult({ error: outcome.category })
 		if (!isReliable(outcome.image)) return setResult({ signal: TooPlainSignal })
 
+		if (action === 'report') {
+			await openReport(outcome.image.hash).catch(() => {})
+			return setResult({
+				note: 'Check the GitHub page, then submit it. Only the fingerprint is included.',
+			})
+		}
+
 		const match = findMatch(outcome.image, settings.hashList)
 		if (match) return setResult({ signal: matchSignal(match), match })
-		if (!save) return setResult({ signal: NoMatchSignal })
+		if (action === 'check') {
+			const reported = findCommunityMatch(
+				outcome.image,
+				settings.communityList.entries,
+			)
+			return setResult({
+				signal: reported ? communitySignal(reported) : NoMatchSignal,
+			})
+		}
 
 		await updateSettings({
 			hashList: addSaved(
@@ -70,9 +87,11 @@ export function HashCheck({ target, owner }: HashCheckProps) {
 	}
 
 	// Only Discord is contacted, so profile images can check themselves
-	const shouldAutoRun = isProfile && settings.hashList.length > 0
+	const shouldAutoRun =
+		isProfile &&
+		settings.hashList.length + settings.communityList.entries.length > 0
 	useEffect(() => {
-		if (shouldAutoRun) run(false)
+		if (shouldAutoRun) run('check')
 		return () => session.cancel()
 		// Runs once for each sheet
 	}, [session])
@@ -83,12 +102,17 @@ export function HashCheck({ target, owner }: HashCheckProps) {
 				<ActionSheetRow
 					label={busy ? 'Checking…' : 'Check my list'}
 					subLabel="Compares this image on your phone. Nothing goes to outside services."
-					onPress={busy ? undefined : () => run(false)}
+					onPress={busy ? undefined : () => run('check')}
 				/>
 				<ActionSheetRow
 					label="Save to my list"
 					subLabel="Keeps a small picture and a fingerprint on your phone."
-					onPress={busy ? undefined : () => run(true)}
+					onPress={busy ? undefined : () => run('save')}
+				/>
+				<ActionSheetRow
+					label="Report to community list"
+					subLabel="Opens a public GitHub issue with only this image's fingerprint."
+					onPress={busy ? undefined : () => run('report')}
 				/>
 			</ActionSheetRow.Group>
 			{result?.signal && <SignalStrip signals={[result.signal]} />}

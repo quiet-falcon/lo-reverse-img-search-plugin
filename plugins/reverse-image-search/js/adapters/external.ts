@@ -1,4 +1,5 @@
 import { Linking } from 'react-native'
+import { reportUrl } from '../core/community-list'
 import { isHttps } from '../core/signed-url'
 import { handoffImageUrl } from '../core/target'
 import { HandoffProviders } from '../providers/handoffs'
@@ -48,3 +49,4 @@ export const openKeyPage = () => Linking.openURL(SauceNaoKeyPage)
 export const openVisionKeyPage = () => Linking.openURL(VisionKeyPage)
 export const openPrivacyPage = () => Linking.openURL(PrivacyPage)
 export const openSynthId = () => Linking.openURL(SynthIdPage)
+export const openReport = (hash: string) => Linking.openURL(reportUrl(hash))
