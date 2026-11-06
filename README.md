@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P5 in testing](https://img.shields.io/badge/status-P5%20in%20testing-blue)](#project-status)
+[![Status: P6 next](https://img.shields.io/badge/status-P6%20next-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -14,7 +14,7 @@
 </div>
 
 > [!IMPORTANT]
-> This plugin is in early development. The current build has a **Search Image** row, a viewer button, browser hand-offs to 8 engines, and in-app results from trace.moe and SauceNAO, all working on a real device. The profile check is built and waiting on device tests. There is no public release so far.
+> This plugin is in early development. The current build has a **Search Image** row, a viewer button, browser hand-offs to 8 engines, and in-app results from trace.moe and SauceNAO, all working on a real device. The profile check works on a real device too. There is no public release so far.
 
 ## Why it exists
 
@@ -30,8 +30,8 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
 | **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
-| **P4** | Oldest-first TinEye and row labels. Google Vision parked | 🧪 Needs device testing |
-| **P5** | Profile check: account age, avatars, banners, and AI tags | 🧪 Built, needs device testing |
+| **P4** | Oldest-first TinEye and row labels. Google Vision parked | ✅ Passed |
+| **P5** | Profile check: account age, avatars, banners, and AI tags | ✅ Passed |
 | **P6** | Local image hash list | ⬜ Not started |
 | **P7** | Community hash list | ⬜ Not started |
 | **P8** | Link risk checks | ⬜ Not started |
@@ -70,8 +70,8 @@ An in-app copy check using Google Cloud Vision is built but parked, because it n
 
 ### 🕵️ Spotting scam profiles
 
-- **Profile check 🧪:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
-- **AI image signals 🧪:** read AI tags where Discord keeps them, plus a SynthID row in the browser.
+- **Profile check ✅:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
+- **AI image signals ✅:** read AI tags where Discord keeps them, which so far means PNG text but not JPEG labels, plus a SynthID row in the browser.
 - **Hash lists ⬜:** save an image to your own list, then match reused copies on your device. A curated community list comes after that.
 - **Link risk ⬜:** flag known phishing domains and lookalikes of sites like `discord.com`.
 

@@ -813,11 +813,11 @@ Work:
 - `core/signals.ts`, plus `ui/SignalStrip.tsx` with one labelled, icon-led row per signal. **Built.**
 - A **Check Profile** row in the long-press message sheet, using the message author. **Built.** A profile sheet entry can follow once a probe finds it.
 - Account age in `core/account-age.ts`: `Math.floor(Number(id) / 4194304) + 1420070400000`. [S] [Discord docs](https://docs.discord.com/developers/reference). Dividing keeps this accurate without BigInt. **Built.**
-- Avatar and banner targets in `core/profile.ts` and `adapters/profile.ts`, using `.png?size=1024` on Discord's CDN. Skip default avatars and webhooks. **Built.** [A, gate 30] Field names on the device.
+- Avatar and banner targets in `core/profile.ts` and `adapters/profile.ts`, using `.png?size=1024` on Discord's CDN. Skip default avatars and webhooks. **Built.**
 - Those targets open the normal search sheet, so hand-offs and in-app providers all work on them.
 - Show the account's creation date, so it can be compared by hand with TinEye's oldest copy. **Built.**
 - AI check, in two layers:
-  - Local tags in `core/image-tags.ts`: C2PA, IPTC AI labels, and generator settings such as Stable Diffusion `parameters`. It reads the original file from Discord, and nothing goes to an outside service. **Built.** [A, gate 26] Test what survives Discord's upload.
+  - Local tags in `core/image-tags.ts`: C2PA, IPTC AI labels, and generator settings such as Stable Diffusion `parameters`. It reads the original file from Discord, and nothing goes to an outside service. **Built.** Device run: PNG text survived, and JPEG XMP did not.
   - A SynthID browser row. A hit is strong, and a miss means nothing. [C] Its public checker is [reported at synthid.com](https://bestforandroid.com/radar/synthid-detector-went-public-check-photo-video-ai-watermarks/), with no public image API, so it is a manual upload. **Built.**
 - Never read or show GPS or location fields. The tag scan skips EXIF entirely.
 
@@ -831,6 +831,8 @@ Acceptance:
 - Avatar and banner hand-offs work on a real profile.
 - A PNG with Stable Diffusion text shows its tag, if the tag survives upload.
 - Every signal has a text label and an icon.
+
+**P5 passed on 2026-11-06** with alpha1, apart from the webhook check, which was not run. See `docs/compatibility.md`.
 
 ### P6: Local hash list
 
@@ -976,11 +978,11 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | Passed, 2026-11-06 | Write a temp file and use `FormData` with its URI, as PetPet does |
 | 24 | Does TinEye's site honour `sort=crawl_date&order=asc`? | Passed, 2026-11-06 | Keep the plain link |
 | 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
-| 26 | Which metadata survives Discord's upload? | P5 | Drop local tag checks |
+| 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived, JPEG XMP did not, one upload each | Drop local tag checks |
 | 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | P6 | Vendor the decoder |
 | 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
 | 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
-| 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | P5 | Use `getAvatarURL`, and leave banners out |
+| 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
 
 Limitations already known:
 
