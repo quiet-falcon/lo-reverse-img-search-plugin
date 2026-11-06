@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.9.0-alpha1",
+	"version": "0.9.0-alpha2",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -284,7 +284,7 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `fusion.ts`: Tiering, dedupe, and ranking.
 - `copy-check.ts`: Counts sites and sets the copy band from Vision's lists.
 - `base64.ts`: Encodes image bytes for Vision.
-- `features.ts`: Switches for parked features.
+- `features.ts`: Switches for parked features: Vision and the report row.
 - `account-age.ts`: Reads an account's creation date from its ID.
 - `profile.ts`: Reads a message author, then builds avatar and banner targets and signals.
 - `signals.ts`: Signal type and wording.
@@ -870,10 +870,10 @@ Work:
 - Entries in `blocklist/entries.json`, holding hashes, categories, and report counts, never images. **Built.**
 - `publish-blocklist.yml`, publishing a compact list to the `community-list` branch with a real Ed25519 signature. The private key stays in Actions, and the public key ships in the plugin. **Built.** This replaces Pages, so the list needs no Pages setup or release.
 - `adapters/community-sync.ts`: fetches `manifest.json`, checks its signature, refuses older versions, then fetches `list.json` and checks its SHA-256. **Built.** It runs from a settings button and from the daily update below.
-- A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built.**
+- A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built, then hidden** by `ReportAvailable` in `core/features.ts`.
 - Community hits show distance, report count, and category, because there is no image to compare. **Built.**
 
-Sensei skipped the report-to-PR and removal checks on 2026-11-06, because seeing matches matters more to him than reporting. Run them before P10 if reporting stays. A report is public under the reporter's GitHub account, which needs a decision before release.
+Sensei skipped the report-to-PR and removal checks on 2026-11-06, because seeing matches matters more to him than reporting. He hid the report row for `1.0.0` on 2026-11-07, because a report is public under the reporter's GitHub account. To bring it back, set `ReportAvailable` to `true`, settle how reporters stay private, then run those checks. Until then, entries go straight into `blocklist/entries.json`.
 
 The list now also updates by itself, at most once a day, after a 20-second delay at start. **Built.**
 
@@ -900,7 +900,7 @@ Acceptance:
 - A known scam domain and a lookalike of `discord.com` are both flagged.
 - Normal Discord and Steam links are not flagged.
 
-**P8 passed on 2026-11-07** with alpha2, apart from the real Discord link, which automated tests cover but no recorded device run has. See `docs/compatibility.md`.
+**P8 passed on 2026-11-07** with alpha2, and the real Discord link passed with `0.9.0-alpha1`. See `docs/compatibility.md`.
 
 ### P9: Crop and mirror search
 
@@ -914,7 +914,7 @@ Work:
 - Finish the README, privacy docs, and install guide.
 - Complete the device checklist on debug and production builds.
 
-The entry switches, minimum match, and adult filter are **Built**.
+The entry switches, minimum match, and adult filter passed on the phone with `0.9.0-alpha1`, apart from the adult filter itself, which needs an adult result to appear.
 
 Acceptance:
 

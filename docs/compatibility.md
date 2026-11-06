@@ -244,18 +244,19 @@ Tested with `0.8.0-alpha2` (commit `71b2d5d`) on 2026-11-07, Discord 352.6 canar
 | Host with a Cyrillic letter is flagged | Passed: `dіscord.com`, which uses U+0456. Discord shows the link in chat as `xn--dscord-pvf.com`, and the sheet shows the Cyrillic form |
 | Real Steam link is not flagged | Passed: `store.steampowered.com` |
 | Unrelated link shows no known risks | Passed: `github.com` |
-| Real Discord link is not flagged | Not run on a recorded build: covered by automated tests |
+| Real Discord link is not flagged | Passed with `0.9.0-alpha1`: `https://discord.com/` |
 | Daily community update runs after start | Not run: nothing on screen shows it, and the list hasn't changed since the manual update |
 
 ## P10 device checks
 
-Built as `0.9.0-alpha1`. These have not been run on a device yet.
+Tested with `0.9.0-alpha1` (commit `1f64171`) on 2026-11-07, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `168f8c860cbe80db0907d91b27f74c254aeca75209b0b5f8abac5b670bb6b7a4`. Sensei reported all nine test steps passing.
 
 | Check | Result |
 | --- | --- |
-| Each long-press row switch hides only its own row | Not run |
-| Viewer button switch hides the button | Not run |
-| Exact only hides Strong results until Show weaker matches is on | Not run |
-| Everything shows Possible results | Not run |
-| Hide adult results off shows them, labelled adult | Not run |
-| Settings survive a reload | Not run |
+| Each long-press row switch hides only its own row | Passed |
+| Viewer button switch hides the button | Passed |
+| Exact only hides other results until Show weaker matches is on | Passed |
+| Everything shows Possible results | Passed |
+| Settings survive a reload | Passed |
+| Hide adult results off shows them, labelled adult | Not run: needs a search that returns an adult result. Automated tests cover the filter |
+| Report row is gone from the My list section | Not run |

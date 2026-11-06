@@ -33,7 +33,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P4** | Oldest-first TinEye and row labels. Google Vision parked | ✅ Passed |
 | **P5** | Profile check: account age, avatars, banners, and AI tags | ✅ Passed |
 | **P6** | Local image hash list | ✅ Passed |
-| **P7** | Community hash list | ✅ Working. Report flow not tested |
+| **P7** | Community hash list | ✅ Working. Reporting is hidden for now |
 | **P8** | Link risk checks | ✅ Passed |
 | **P9** | Crop and mirror search | ⏸️ Parked with Vision |
 | **P10** | Polish, full device testing, and `1.0.0` | 🧪 In progress |
@@ -73,8 +73,8 @@ An in-app copy check using Google Cloud Vision is built but parked, because it n
 - **Profile check ✅:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
 - **AI image signals ✅:** read AI tags where Discord keeps them, which so far means PNG text but not JPEG labels, plus a SynthID row in the browser.
 - **My list ✅:** save an image to your own list, then match resized, recompressed, or mirrored copies on your phone. Cropped copies can slip through.
-- **Community list ✅:** a curated, signed list of reported image fingerprints. It holds no pictures, and every addition needs approval.
-- **Link risk 🧪:** tap **Check Links** to flag known scam domains and lookalikes of sites like `discord.com`, on your phone.
+- **Community list ✅:** a curated, signed list of image fingerprints. It holds no pictures, and every addition needs approval.
+- **Link risk ✅:** tap **Check Links** to flag known scam domains and lookalikes of sites like `discord.com`, on your phone.
 
 All of these appear as labelled signals, and each one says what it's based on.
 
@@ -119,7 +119,6 @@ These rules are built into the project:
 | My list | Nothing outside Discord. The fingerprint and small picture stay on your phone |
 | Community list update | Your IP address, sent to GitHub once a day or when you tap update |
 | Check Links | Your IP address, sent to GitHub for the scam list. Your links stay on your phone |
-| Report to community list | A public GitHub issue under your GitHub account, holding the image's fingerprint |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
 
 A photo already online can lead to a page that names the person in it. That's how reverse image search works, so this plugin doesn't promise otherwise. See [`docs/privacy.md`](docs/privacy.md).
