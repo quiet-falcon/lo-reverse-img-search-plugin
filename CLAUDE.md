@@ -844,7 +844,7 @@ Acceptance:
 Work:
 
 - `core/pdq.ts` and `core/pixels.ts`: PDQ 256-bit hash, quality score, mirror hashes, and distance, in pure TypeScript. **Built.** Hashes and quality match `pdqhash` exactly on the fixtures.
-- Hash a small PNG from Discord, so one decoder covers every format and the JS thread stays free. **Built**, with no npm packages. [A, gate 31] The proxy returns PNG.
+- Hash a small PNG from Discord, so one decoder covers every format and the JS thread stays free. **Built**, with no npm packages.
 - One-tap **Save to my list**, kept on the device with a private thumbnail for side-by-side comparison. **Built.** The limit is 100 images, and settings can remove them.
 - Profile images check the list by themselves when it has entries, because only Discord is contacted. **Built.**
 - Start at distance 30 or less and quality 50 or more. **Built.** [A, gate P10] Tune these with real images.
@@ -857,6 +857,8 @@ Acceptance:
 - A recompressed, resized, and mirrored copy of a saved image matches.
 - Flat, low-detail images are rejected by the quality score.
 - Hashing doesn't visibly freeze the app on the Motorola G40s.
+
+**P6 passed on 2026-11-06** with alpha1. See `docs/compatibility.md`.
 
 ### P7: Community list
 
@@ -986,10 +988,10 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
 | 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived, JPEG XMP did not, one upload each | Drop local tag checks |
 | 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | Not needed: the plugin has its own PNG decoder | None |
-| 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
+| 28 | Is PDQ fast enough on the phone? | Passed, 2026-11-06 | Use a smaller image, or hash in slices |
 | 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
 | 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
-| 31 | Does the media proxy return a PNG with `format=png`? | P6 | Fall back to original PNGs, and say other formats can't be saved |
+| 31 | Does the media proxy return a PNG with `format=png`? | Passed, 2026-11-06 | Fall back to original PNGs, and say other formats can't be saved |
 
 Limitations already known:
 

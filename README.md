@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P6 in testing](https://img.shields.io/badge/status-P6%20in%20testing-blue)](#project-status)
+[![Status: P7 in progress](https://img.shields.io/badge/status-P7%20in%20progress-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -32,8 +32,8 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
 | **P4** | Oldest-first TinEye and row labels. Google Vision parked | ✅ Passed |
 | **P5** | Profile check: account age, avatars, banners, and AI tags | ✅ Passed |
-| **P6** | Local image hash list | 🧪 Built, needs device testing |
-| **P7** | Community hash list | ⬜ Not started |
+| **P6** | Local image hash list | ✅ Passed |
+| **P7** | Community hash list | 🔨 In progress |
 | **P8** | Link risk checks | ⬜ Not started |
 | **P9** | Crop and mirror search | ⏸️ Parked with Vision |
 | **P10** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
@@ -72,8 +72,8 @@ An in-app copy check using Google Cloud Vision is built but parked, because it n
 
 - **Profile check ✅:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
 - **AI image signals ✅:** read AI tags where Discord keeps them, which so far means PNG text but not JPEG labels, plus a SynthID row in the browser.
-- **My list 🧪:** save an image to your own list, then match resized, recompressed, or mirrored copies on your phone. Cropped copies can slip through.
-- **Community list ⬜:** a curated, signed list comes after that.
+- **My list ✅:** save an image to your own list, then match resized, recompressed, or mirrored copies on your phone. Cropped copies can slip through.
+- **Community list 🔨:** a curated, signed list comes after that.
 - **Link risk ⬜:** flag known phishing domains and lookalikes of sites like `discord.com`.
 
 All of these appear as labelled signals, and each one says what it's based on.

@@ -189,17 +189,24 @@ Gates closed by this run:
 
 ## P6 device checks
 
-Built as `0.6.0-alpha1`. These have not been run on a device yet.
+Tested with `0.6.0-alpha1` (commit `eca3f1f`) on 2026-11-06, Discord 352.6 canary, Valenced 1.3.0. This was a dev build packaged by hand from that commit, SHA-256 `931a3892a76407d0a8d42660c8d9408f07c7337768b6f7b274b2d06e96c06e16`.
 
 | Check | Result |
 | --- | --- |
-| Save an image, and it appears in settings | Not run |
-| Same image matches | Not run |
-| Resized JPEG copy matches | Not run |
-| Mirrored copy matches | Not run |
-| Different image shows Not on your list | Not run |
-| Plain image shows Too plain to compare | Not run |
-| Both pictures show side by side | Not run |
-| Saved avatar matches by itself on Check Profile | Not run |
-| Hashing doesn't visibly freeze the app | Not run |
-| List survives a reload, and an entry can be removed | Not run |
+| Save an image, and it appears in settings | Passed, reported by Sensei |
+| Same image matches | Passed |
+| Resized JPEG copy matches | Passed |
+| Mirrored copy matches | Passed |
+| Different image does not match | Passed |
+| Plain image does not match | Passed. Its exact wording was not confirmed |
+| Both pictures show side by side | Passed, screenshot |
+| Saved avatar matches on Check Profile, 0 of 256 bits | Passed, screenshot |
+| Hashing doesn't visibly freeze the app | Passed, reported by Sensei |
+| List survives a reload, and an entry can be removed | Passed, reported by Sensei |
+
+Gates closed by this run:
+
+| # | Question | Status |
+| --- | --- | --- |
+| 28 | Is PDQ fast enough on the phone? | Passed |
+| 31 | Does the media proxy return a PNG with `format=png`? | Passed: PNG and JPEG uploads both hashed |
