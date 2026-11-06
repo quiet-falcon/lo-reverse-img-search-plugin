@@ -487,7 +487,10 @@ describe('checkImageTags', () => {
 
 	test('reads the original file from Discord and sends it nowhere', async () => {
 		FakeXhr.respond = xhr => xhr.succeed(200, Xmp.buffer)
-		const outcome = await checkImageTags(createSearchSession(), target(ProxyLink))
+		const outcome = await checkImageTags(
+			createSearchSession(),
+			target(ProxyLink),
+		)
 
 		expect(FakeXhr.instances).toHaveLength(1)
 		expect(FakeXhr.instances[0]!.method).toBe('GET')
