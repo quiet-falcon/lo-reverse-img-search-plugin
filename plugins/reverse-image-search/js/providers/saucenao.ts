@@ -126,12 +126,15 @@ function toResult(value: unknown): ProviderResult | undefined {
 
 	const data = isRecord(value.data) ? value.data : {}
 	const site = siteName(text(value.header.index_name))
-	const title = firstText(data, TitleFields) || site || 'Untitled'
+	const named = firstText(data, TitleFields)
 	const author = firstText(data, AuthorFields)
+	// Posts often have no title, so name them by who posted where
+	const title =
+		named || (author && site ? `${author} on ${site}` : site || author)
 	const result: ProviderResult = {
 		provider: 'saucenao',
-		title,
-		detail: [author, site].filter(Boolean).join(' · '),
+		title: title || 'Untitled',
+		detail: named ? [author, site].filter(Boolean).join(' · ') : '',
 		similarity: similarity / 100,
 		tier: sauceNaoTier(similarity),
 		adult: Number(value.header.hidden) > 0,
@@ -156,6 +159,7 @@ export const siteName = (indexName: string) =>
 	indexName
 		.replace(/^Index #\d+:\s*/i, '')
 		.replace(/\s+-\s+.*$/, '')
+		.replace(/\*+$/, '')
 		.trim()
 
 function linkFor(data: Unknowns) {

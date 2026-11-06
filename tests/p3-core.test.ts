@@ -145,14 +145,47 @@ describe('parseSauceNao', () => {
 		expect(outcome).toMatchObject({
 			results: [
 				{
-					title: 'Pixiv Images',
-					detail: 'A, B · Pixiv Images',
+					title: 'A, B on Pixiv Images',
+					detail: '',
 					url: 'https://danbooru.donmai.us/post/show/1',
 					tier: 'strong',
 					adult: true,
 				},
 			],
 		})
+	})
+
+	test('names untitled posts by author and site', () => {
+		const outcome = parseSauceNao(
+			200,
+			JSON.stringify({
+				header: { status: 0 },
+				results: [
+					{
+						header: {
+							similarity: '87.5',
+							index_name: 'Index #41: Twitter - 1.jpg',
+						},
+						data: { twitter_user_handle: 'artist' },
+					},
+					{
+						header: {
+							similarity: '80',
+							index_name: 'Index #41: Twitter - 2.jpg',
+						},
+						data: {},
+					},
+				],
+			}),
+		)
+
+		expect(
+			outcome.kind === 'results' &&
+				outcome.results.map(r => [r.title, r.detail]),
+		).toEqual([
+			['artist on Twitter', ''],
+			['Twitter', ''],
+		])
 	})
 
 	test('drops results below the minimum and skips bad entries', () => {
@@ -246,7 +279,7 @@ describe('parseSauceNao', () => {
 
 	test('shortens index names to the site', () => {
 		expect(siteName('Index #9: Danbooru - abc.jpg')).toBe('Danbooru')
-		expect(siteName('Index #21: Anime')).toBe('Anime')
+		expect(siteName('Index #21: Anime* - x.mkv')).toBe('Anime')
 	})
 })
 

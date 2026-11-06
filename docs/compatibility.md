@@ -105,4 +105,22 @@ trace.moe often returns the same scene several times, a few seconds apart. P3's 
 | --- | --- | --- |
 | 15 | SauceNAO limits and keyless behaviour | Open. The key stays required |
 | 16 | SauceNAO `hide` meaning | Open. The plugin sends `hide=0` and filters on `hidden` |
-| 23 | Hand-built multipart upload works from the phone | Open |
+| 23 | Hand-built multipart upload works from the phone | Passed: SauceNAO returned results and quota |
+
+## P3 results (alpha1)
+
+Tested with `0.3.0-alpha1` (commit `f452b12`, dev build) on 2026-11-06.
+
+| Check | Result |
+| --- | --- |
+| Key saved in settings, search button names both services | Passed |
+| SauceNAO upload and parse | Passed: 7 SauceNAO matches on an anime frame, with live quota |
+| Manga cover (*Let's Go Nirvana!*) | No confident match from either service. The upload worked, so this is index coverage, not a fault |
+| Result opens its source page | Passed |
+| Merged results, one best match, duplicates collapsed | Passed: trace.moe's 4 identical rows became 1 |
+| Per-service status lines with quota | Passed |
+| Rate limit | Passed: fifth quick search showed the limit message and did not retry |
+| Remove key | Passed: button named trace.moe only |
+| Artwork returns a confident SauceNAO match | Not run yet |
+
+Untitled Twitter results showed "Twitter" as the title, and one site showed as "Anime*". alpha2 names them "<author> on <site>" and drops the asterisk.

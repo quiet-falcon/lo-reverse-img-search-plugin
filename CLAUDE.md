@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.3.0-alpha1",
+	"version": "0.3.0-alpha2",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -376,7 +376,7 @@ Provider facts:
 - [S] trace.moe's docs say mobile apps should send requests directly from clients.
 - [S] trace.moe accepts a raw `image/*` request body, so it needs no temporary file or multipart form.
 - [C] SauceNAO reports `short_remaining`, `long_remaining`, and `minimum_similarity` in its response header. Show those live values. Do not hard-code limits.
-- [C] Secondary sources report 150 searches a day and 4 per 30 seconds for free keys. [A, gate P3] Confirm this from a live response.
+- [C] Secondary sources report 150 searches a day and 4 per 30 seconds for free keys. Device run on 2026-11-06: the fifth quick search was rate limited, and `long_remaining` read 94 then 92 after a few searches, which suggests 100 a day for this key. Keep showing the live value.
 - [A, gate P3] Whether SauceNAO JSON works without a key. Until proven, API mode requires a key and hand-off still works.
 - [S] Vision pricing: first 1,000 Web Detection units a month are free, then US$3.50 per 1,000.
 - [S] Vision limits: 20 MB per image and 10 MB per JSON request.
@@ -878,8 +878,8 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 11 | Does a video URL return a still frame? | P2 | Disable video search |
 | 12 | Do binary XHR and progress events work? | Passed, 2026-11-06 | Use `fetch` with `Content-Length` and declared size checks |
 | 13 | Does a raw `Uint8Array` XHR body upload work on the device? | Passed, 2026-11-06 | Use `FileModule` and multipart, then re-evaluate |
-| 14 | Do providers accept uploads from the phone's network? | Passed for trace.moe | Show the provider error and keep hand-offs |
-| 15 | SauceNAO limits and keyless behaviour | P3 | Keep the key required |
+| 14 | Do providers accept uploads from the phone's network? | Passed for trace.moe and SauceNAO | Show the provider error and keep hand-offs |
+| 15 | SauceNAO limits and keyless behaviour | Partly passed: limited after 5 quick searches, daily count fell 94 to 92. Keyless still untested | Keep the key required |
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |
 | 17 | Vision REST shape and billing requirement | P4 | Keep Vision off, or drop it |
 | 18 | Do thresholds match real results? | P5 | Retune them |
@@ -887,7 +887,7 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
 | 21 | Does `maxResults` raise Web Detection's list sizes? | P4 | Use the default size and keep "at least" wording |
 | 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
-| 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | P3 | Write a temp file and use `FormData` with its URI, as PetPet does |
+| 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | Passed, 2026-11-06 | Write a temp file and use `FormData` with its URI, as PetPet does |
 
 Limitations already known:
 
