@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import type { ProviderSpec } from '../plugins/reverse-image-search/js/core/settings'
 
 type Handler = (() => void) | null
 
@@ -70,7 +71,7 @@ mock.module(
 const { sendRequest } = await import(
 	'../plugins/reverse-image-search/js/adapters/http'
 )
-const { searchTraceMoe } = await import(
+const { searchImage } = await import(
 	'../plugins/reverse-image-search/js/adapters/search'
 )
 const { createSearchSession } = await import(
@@ -89,6 +90,20 @@ const Results = JSON.stringify({
 	quota: 100,
 	quotaUsed: 1,
 	result: [{ anilist: 1, similarity: 0.99 }],
+})
+
+const SauceResults = JSON.stringify({
+	header: { status: 0, long_remaining: 120, minimum_similarity: 50 },
+	results: [
+		{
+			header: {
+				similarity: '95.1',
+				index_name: 'Index #5: Pixiv Images - 1_p0.jpg',
+				hidden: 0,
+			},
+			data: { title: 'Art', member_name: 'Someone', pixiv_id: 1 },
+		},
+	],
 })
 
 const target = (url = Fresh) => ({
@@ -110,13 +125,16 @@ afterEach(() => {
 	FakeXhr.respond = () => {}
 })
 
-function run(start = target()) {
+function run(
+	start = target(),
+	providers: ProviderSpec[] = [{ id: 'tracemoe' }],
+) {
 	const states: string[] = []
 	const outcomes: unknown[] = []
 	const session = createSearchSession()
-	const promise = searchTraceMoe(session, start, {
-		onState: state => states.push(state),
-		onOutcome: outcome => outcomes.push(outcome),
+	const promise = searchImage(session, start, providers, {
+		onState: (state: string) => states.push(state),
+		onOutcome: (outcome: unknown) => outcomes.push(outcome),
 	})
 
 	return { promise, session, states, outcomes }
@@ -222,7 +240,7 @@ describe('sendRequest', () => {
 	})
 })
 
-describe('searchTraceMoe', () => {
+describe('searchImage', () => {
 	test('downloads, checks the bytes, uploads them raw, and shows results', async () => {
 		FakeXhr.respond = xhr =>
 			xhr.url.includes('trace.moe')
@@ -235,7 +253,10 @@ describe('searchTraceMoe', () => {
 		expect(states).toEqual(['downloading', 'searching', 'done'])
 		expect(upload.headers['Content-Type']).toBe('image/jpeg')
 		expect(upload.body).toBeInstanceOf(Uint8Array)
-		expect(outcomes[0]).toMatchObject({ kind: 'results', quotaLeft: 99 })
+		expect(outcomes[0]).toMatchObject({
+			kind: 'providers',
+			outcomes: { tracemoe: { kind: 'results', quotaLeft: 99 } },
+		})
 		expect(refreshed).toEqual([])
 	})
 
@@ -253,7 +274,10 @@ describe('searchTraceMoe', () => {
 		expect(
 			FakeXhr.instances.map(xhr => xhr.url.includes('format=png')),
 		).toContain(true)
-		expect(outcomes[0]).toMatchObject({ kind: 'results' })
+		expect(outcomes[0]).toMatchObject({
+			kind: 'providers',
+			outcomes: { tracemoe: { kind: 'results' } },
+		})
 	})
 
 	test('rejects a non-image without uploading it', async () => {
@@ -314,10 +338,76 @@ describe('searchTraceMoe', () => {
 	test('ignores a second tap while a search runs', async () => {
 		const session = createSearchSession()
 		const callbacks = { onState() {}, onOutcome() {} }
-		searchTraceMoe(session, target(), callbacks)
-		await searchTraceMoe(session, target(), callbacks)
+		const providers: ProviderSpec[] = [{ id: 'tracemoe' }]
+		searchImage(session, target(), providers, callbacks)
+		await searchImage(session, target(), providers, callbacks)
 
 		expect(FakeXhr.instances).toHaveLength(1)
 		session.cancel()
+	})
+
+	test('sends one download to both providers, with the key only to SauceNAO', async () => {
+		const Key = 'a'.repeat(40)
+		FakeXhr.respond = xhr => {
+			if (xhr.url.includes('trace.moe')) return xhr.succeed(200, Results)
+			if (xhr.url.includes('saucenao.com'))
+				return xhr.succeed(200, SauceResults)
+			xhr.succeed(200, Jpeg.buffer)
+		}
+		const { promise, outcomes } = run(target(), [
+			{ id: 'tracemoe' },
+			{ id: 'saucenao', key: Key },
+		])
+		await promise
+
+		const sauce = FakeXhr.instances.find(xhr =>
+			xhr.url.includes('saucenao.com'),
+		)!
+		const others = FakeXhr.instances.filter(xhr => xhr !== sauce)
+		expect(sauce.url).toContain(`api_key=${Key}`)
+		expect(sauce.headers['Content-Type']).toStartWith(
+			'multipart/form-data; boundary=',
+		)
+		expect(others.every(xhr => !xhr.url.includes(Key))).toBe(true)
+		expect(
+			FakeXhr.instances.filter(xhr => xhr.url.includes('discord')),
+		).toHaveLength(1)
+		expect(outcomes[0]).toMatchObject({
+			kind: 'providers',
+			outcomes: {
+				tracemoe: { kind: 'results' },
+				saucenao: { kind: 'results', quotaLeft: 120 },
+			},
+		})
+	})
+
+	test("keeps one provider's results when the other fails", async () => {
+		FakeXhr.respond = xhr => {
+			if (xhr.url.includes('trace.moe')) return xhr.succeed(429, '')
+			if (xhr.url.includes('saucenao.com'))
+				return xhr.succeed(200, SauceResults)
+			xhr.succeed(200, Jpeg.buffer)
+		}
+		const { promise, states, outcomes } = run(target(), [
+			{ id: 'tracemoe' },
+			{ id: 'saucenao', key: 'b'.repeat(40) },
+		])
+		await promise
+
+		expect(states.at(-1)).toBe('done')
+		expect(outcomes[0]).toMatchObject({
+			outcomes: {
+				tracemoe: { kind: 'error', category: 'rate-limited' },
+				saucenao: { kind: 'results' },
+			},
+		})
+	})
+
+	test('does nothing with no providers', async () => {
+		const { promise, outcomes } = run(target(), [])
+		await promise
+
+		expect(FakeXhr.instances).toHaveLength(0)
+		expect(outcomes).toEqual([])
 	})
 })

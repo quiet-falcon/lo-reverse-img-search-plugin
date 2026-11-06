@@ -6,19 +6,32 @@ import { Design } from '@valenced/discord/design'
 import { useEffect, useRef, useState } from 'react'
 import { Image, View } from 'react-native'
 import { handoffChoices, openHandoff, openResult } from '../adapters/external'
-import { searchTraceMoe } from '../adapters/search'
+import { searchImage } from '../adapters/search'
+import { recordConsent, useSettings } from '../adapters/settings-store'
+import { fuseResults } from '../core/fusion'
 import {
-	ErrorMessages,
+	ConsentNotices,
+	errorMessage,
 	hiddenSummary,
+	joinNames,
+	ProviderNames,
 	percent,
+	providerStatus,
 	StateMessages,
 	TierLabels,
 	visibleResults,
 } from '../core/messages'
 import { createSearchSession } from '../core/session'
+import { activeProviders, needsConsent } from '../core/settings'
 import { previewUrl } from '../core/target'
 import type { SearchState } from '../core/session'
-import type { ImageTarget, ProviderOutcome } from '../core/types'
+import type {
+	ImageTarget,
+	ProviderId,
+	ProviderOutcomes,
+	ProviderResult,
+	SearchOutcome,
+} from '../core/types'
 
 const { ActionSheet, ActionSheetRow, ActionSheetSwitchRow, Stack, Text } =
 	Design
@@ -102,7 +115,7 @@ function Handoffs({ target }: { target: ImageTarget }) {
 					/>
 				</ActionSheetRow.Group>
 			)}
-			<TraceMoeSearch target={target} />
+			<InAppSearch target={target} />
 			<Text variant="text-sm/normal" color="text-muted">
 				Opens in your browser. The engine you pick gets this image's link, which
 				can include its channel ID, attachment ID, filename, and a temporary
@@ -125,22 +138,38 @@ function Handoffs({ target }: { target: ImageTarget }) {
 	)
 }
 
-function TraceMoeSearch({ target }: { target: ImageTarget }) {
+function InAppSearch({ target }: { target: ImageTarget }) {
+	const settings = useSettings()
+	const providers = activeProviders(settings)
+	const ids = providers.map(spec => spec.id)
 	const session = useRef(createSearchSession()).current
 	const [state, setState] = useState<SearchState>('idle')
-	const [outcome, setOutcome] = useState<ProviderOutcome>()
+	const [outcome, setOutcome] = useState<SearchOutcome>()
+	const [asking, setAsking] = useState<ProviderId[]>([])
 
 	// Closing the sheet or stopping the plugin cancels the search
 	useEffect(() => () => session.cancel(), [session])
 
 	const busy = session.isActive() && state !== 'done' && state !== 'failed'
 
-	const start = () => {
+	const run = () => {
 		setOutcome(undefined)
-		searchTraceMoe(session, target, {
+		searchImage(session, target, providers, {
 			onState: setState,
 			onOutcome: setOutcome,
 		})
+	}
+
+	const start = () => {
+		const unseen = needsConsent(settings, providers)
+		if (unseen.length) return setAsking(unseen)
+		run()
+	}
+
+	const accept = () => {
+		recordConsent(asking).catch(() => {})
+		setAsking([])
+		run()
 	}
 
 	const cancel = () => {
@@ -148,84 +177,121 @@ function TraceMoeSearch({ target }: { target: ImageTarget }) {
 		setState('cancelled')
 	}
 
+	if (!ids.length)
+		return (
+			<ActionSheetRow.Group title="Search in app">
+				<ActionSheetRow
+					label="No in-app search turned on"
+					subLabel="Turn on trace.moe or add a SauceNAO key in plugin settings."
+				/>
+			</ActionSheetRow.Group>
+		)
+
 	return (
 		<Stack spacing={8}>
-			<ActionSheetRow.Group title="Search in app">
-				{busy ? (
-					<ActionSheetRow
-						label="Cancel search"
-						subLabel={StateMessages[state]}
-						onPress={cancel}
-					/>
-				) : (
-					<ActionSheetRow
-						label="Search with trace.moe"
-						subLabel="For anime screenshots. Sends the image to trace.moe, which logs your IP address."
-						onPress={start}
-					/>
-				)}
-			</ActionSheetRow.Group>
+			{asking.length > 0 ? (
+				<Consent
+					ids={asking}
+					onAccept={accept}
+					onCancel={() => setAsking([])}
+				/>
+			) : (
+				<ActionSheetRow.Group title="Search in app">
+					{busy ? (
+						<ActionSheetRow
+							label="Cancel search"
+							subLabel={StateMessages[state]}
+							onPress={cancel}
+						/>
+					) : (
+						<ActionSheetRow
+							label={`Search with ${joinNames(ids)}`}
+							subLabel={`Sends this image to ${joinNames(ids)}.`}
+							onPress={start}
+						/>
+					)}
+				</ActionSheetRow.Group>
+			)}
 			{state === 'cancelled' && (
 				<Text variant="text-sm/normal" color="text-muted">
 					Search cancelled.
 				</Text>
 			)}
-			{outcome && <Outcome outcome={outcome} />}
+			{outcome?.kind === 'error' && (
+				<Text variant="text-sm/normal" color="text-muted">
+					{errorMessage(outcome.category, joinNames(ids))}
+				</Text>
+			)}
+			{outcome?.kind === 'providers' && (
+				<Results outcomes={outcome.outcomes} order={ids} />
+			)}
 		</Stack>
 	)
 }
 
-function Outcome({ outcome }: { outcome: ProviderOutcome }) {
-	if (outcome.kind === 'error')
-		return (
-			<Text variant="text-sm/normal" color="text-muted">
-				{ErrorMessages[outcome.category]}
-			</Text>
-		)
-
-	return <Results outcome={outcome} />
+function Consent({
+	ids,
+	onAccept,
+	onCancel,
+}: {
+	ids: ProviderId[]
+	onAccept(): void
+	onCancel(): void
+}) {
+	return (
+		<Stack spacing={8}>
+			<Text variant="text-md/semibold">Before your first search</Text>
+			{ids.map(id => (
+				<Text key={id} variant="text-sm/normal" color="text-muted">
+					{ConsentNotices[id]}
+				</Text>
+			))}
+			<ActionSheetRow.Group>
+				<ActionSheetRow
+					label="Continue and search"
+					subLabel="You won't see this again for these services."
+					onPress={onAccept}
+				/>
+				<ActionSheetRow label="Not now" onPress={onCancel} />
+			</ActionSheetRow.Group>
+		</Stack>
+	)
 }
 
 function Results({
-	outcome,
+	outcomes,
+	order,
 }: {
-	outcome: Extract<ProviderOutcome, { kind: 'results' }>
+	outcomes: ProviderOutcomes
+	order: ProviderId[]
 }) {
 	const [showWeak, setShowWeak] = useState(false)
-	const { shown, weak, adult } = visibleResults(outcome.results, showWeak)
-	const footer = [
-		hiddenSummary(weak, adult, showWeak),
-		outcome.quotaLeft === undefined
-			? ''
-			: `${outcome.quotaLeft} free searches left today.`,
-	]
-		.filter(Boolean)
-		.join(' ')
-	const confident = shown.some(result => result.tier !== 'possible')
+	const fused = fuseResults(outcomes, order)
+	const { shown, weak, adult } = visibleResults(fused, showWeak)
+	const [best, ...rest] = shown
+	const hasBest = best !== undefined && best.tier !== 'possible'
+	const others = hasBest ? rest : shown
+	const hidden = hiddenSummary(weak, adult, showWeak)
 
 	return (
 		<Stack spacing={8}>
-			{!confident && (
+			{!hasBest && (
 				<Text variant="text-sm/normal" color="text-muted">
-					No confident match. trace.moe only matches frames from anime episodes,
-					not manga, covers, fan art, or posters. Try a browser button for
-					those.
+					No confident match. trace.moe only knows anime episodes, and SauceNAO
+					mostly knows art and manga. Try a browser button for photos and memes.
 				</Text>
 			)}
-			{shown.length > 0 && (
-				<ActionSheetRow.Group title="trace.moe results">
-					{shown.map((result, index) => (
-						<ActionSheetRow
+			{hasBest && (
+				<ActionSheetRow.Group title="Best match">
+					<ResultRow result={best} />
+				</ActionSheetRow.Group>
+			)}
+			{others.length > 0 && (
+				<ActionSheetRow.Group title={hasBest ? 'More results' : 'Results'}>
+					{others.map((result, index) => (
+						<ResultRow
 							key={`${result.url ?? result.title}-${index}`}
-							label={result.title}
-							subLabel={[
-								`${TierLabels[result.tier]}, ${percent(result.similarity)}`,
-								result.tier === 'possible' ? 'likely wrong' : '',
-								result.detail,
-							]
-								.filter(Boolean)
-								.join(' · ')}
-							onPress={result.url ? () => openResult(result.url!) : undefined}
+							result={result}
 						/>
 					))}
 				</ActionSheetRow.Group>
@@ -234,17 +300,42 @@ function Results({
 				<ActionSheetRow.Group>
 					<ActionSheetSwitchRow
 						label="Show weaker matches"
-						subLabel="Below 90% similarity. trace.moe says these are usually wrong."
+						subLabel="Low similarity. These are usually wrong."
 						value={showWeak}
 						onValueChange={setShowWeak}
 					/>
 				</ActionSheetRow.Group>
 			)}
-			{footer && (
+			{order.map(id => {
+				const outcome = outcomes[id]
+				return outcome ? (
+					<Text key={id} variant="text-xs/normal" color="text-muted">
+						{providerStatus(id, outcome)}
+					</Text>
+				) : null
+			})}
+			{hidden !== '' && (
 				<Text variant="text-xs/normal" color="text-muted">
-					{footer}
+					{hidden}
 				</Text>
 			)}
 		</Stack>
+	)
+}
+
+function ResultRow({ result }: { result: ProviderResult }) {
+	return (
+		<ActionSheetRow
+			label={result.title}
+			subLabel={[
+				`${TierLabels[result.tier]}, ${percent(result.similarity)}`,
+				result.tier === 'possible' ? 'likely wrong' : '',
+				ProviderNames[result.provider],
+				result.detail,
+			]
+				.filter(Boolean)
+				.join(' · ')}
+			onPress={result.url ? () => openResult(result.url!) : undefined}
+		/>
 	)
 }

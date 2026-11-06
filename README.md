@@ -29,7 +29,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P0** | Foundation, build pipeline, and device probe | ✅ Passed |
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
 | **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
-| **P3** | SauceNAO results and ranked merging | ⬜ Not started |
+| **P3** | SauceNAO results and ranked merging | 🔶 Built, device test pending |
 | **P4** | Google Cloud Vision and the copy check | ⬜ Not started |
 | **P5** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
 

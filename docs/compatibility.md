@@ -98,3 +98,11 @@ Gates closed by these runs:
 trace.moe often returns the same scene several times, a few seconds apart. P3's fusion step dedupes them.
 
 **P2 passed on 2026-11-06.**
+
+## P3 gates
+
+| # | Question | Status |
+| --- | --- | --- |
+| 15 | SauceNAO limits and keyless behaviour | Open. The key stays required |
+| 16 | SauceNAO `hide` meaning | Open. The plugin sends `hide=0` and filters on `hidden` |
+| 23 | Hand-built multipart upload works from the phone | Open |

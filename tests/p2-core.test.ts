@@ -180,6 +180,7 @@ describe('visibleResults', () => {
 		tier: ProviderResult['tier'],
 		adult = false,
 	): ProviderResult => ({
+		provider: 'tracemoe',
 		title: 't',
 		detail: '',
 		similarity: 0.95,

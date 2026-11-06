@@ -2,6 +2,7 @@ import { Linking } from 'react-native'
 import { isHttps } from '../core/signed-url'
 import { handoffImageUrl } from '../core/target'
 import { HandoffProviders } from '../providers/handoffs'
+import { SauceNaoKeyPage } from '../providers/saucenao'
 import type { ImageTarget } from '../core/types'
 
 export const handoffChoices = HandoffProviders.map(({ id, name }) => ({
@@ -36,3 +37,9 @@ export async function openResult(url: string) {
 	await Linking.openURL(url)
 	return true
 }
+
+const PrivacyPage =
+	'https://github.com/quiet-falcon/lo-reverse-img-search-plugin/blob/main/docs/privacy.md'
+
+export const openKeyPage = () => Linking.openURL(SauceNaoKeyPage)
+export const openPrivacyPage = () => Linking.openURL(PrivacyPage)

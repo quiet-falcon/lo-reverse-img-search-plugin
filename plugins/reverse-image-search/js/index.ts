@@ -3,12 +3,16 @@ import { patchMediaViewer } from './adapters/media-viewer'
 import { patchMessageSheet } from './adapters/message-sheet'
 import { startProbe } from './adapters/probe'
 import { probeState } from './adapters/session'
+import { bindSettings } from './adapters/settings-store'
 import { recordNames } from './core/probe'
-import ProbeSettings from './ui/ProbeSettings'
+import { DefaultSettings } from './core/settings'
 import { closeSearchSheet } from './ui/SearchSheet'
+import Settings from './ui/Settings'
+import type { Settings as SettingsData } from './core/settings'
 
-export default plugin({
-	start({ cleanup, plugin }) {
+export default plugin<{ jsonStorage: SettingsData }>({
+	jsonStorage: { load: true, default: DefaultSettings },
+	start({ cleanup, plugin, jsonStorage }) {
 		const onError = (error: unknown) => plugin.reportError(error)
 
 		// Dev builds report why the viewer button did or didn't appear
@@ -20,6 +24,7 @@ export default plugin({
 			: undefined
 
 		cleanup(
+			bindSettings(jsonStorage),
 			watchDiscordModules(),
 			patchMessageSheet(onError),
 			patchMediaViewer(onError, onViewerStatus),
@@ -28,5 +33,5 @@ export default plugin({
 
 		if (__DEV__) cleanup(startProbe(probeState))
 	},
-	SettingsComponent: __DEV__ ? ProbeSettings : undefined,
+	SettingsComponent: Settings,
 })

@@ -50,6 +50,7 @@ describe('parseTraceMoe', () => {
 			quotaLeft: 97,
 			results: [
 				{
+					provider: 'tracemoe',
 					title: 'Nekopara OVA',
 					detail: 'Episode 2 at 1:38',
 					similarity: 0.981,

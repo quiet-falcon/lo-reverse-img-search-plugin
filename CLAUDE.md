@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.2.0-alpha2",
+	"version": "0.3.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -534,7 +534,7 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 | URL refresh | The attachment URL goes to Discord, as normal client traffic |
 | Result thumbnails | Your IP address goes to the host serving each thumbnail |
 
-Show this short notice on first use of each provider, and link `docs/privacy.md` from settings. Never promise that a provider deletes images, except where its terms say so. trace.moe's [terms](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/terms.md) say it does not keep search images, and that IP addresses are logged.
+Show a short notice on first use of each provider, and link `docs/privacy.md` from settings. Sensei asked for calm wording on 2026-11-06: the in-app notice says the provider "sees your connection details", and `docs/privacy.md` names the IP address plainly. Never promise that a provider deletes images, except where its terms say so. trace.moe's [terms](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/terms.md) say it does not keep search images, and that IP addresses are logged.
 
 API keys are stored as plain JSON in the plugin's data folder. Say so in settings. Other plugins may be able to read them, because plugins share the client's process.
 
@@ -763,7 +763,7 @@ Acceptance:
 
 Work:
 
-- Key settings, consent, SauceNAO provider, fusion, and quota display.
+- Key settings, consent, SauceNAO provider, fusion, and quota display. **Done, device test pending.** The multipart body is built by hand in `core/multipart.ts`, so no temp file is written.
 
 Acceptance:
 
@@ -887,6 +887,7 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
 | 21 | Does `maxResults` raise Web Detection's list sizes? | P4 | Use the default size and keep "at least" wording |
 | 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
+| 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | P3 | Write a temp file and use `FormData` with its URI, as PetPet does |
 
 Limitations already known:
 

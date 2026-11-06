@@ -5,8 +5,14 @@ import {
 	MaxResponseBytes,
 	ProviderTimeoutMs,
 } from '../core/limits'
+import { randomBoundary } from '../core/multipart'
 import { isAttachmentUrl, isStale, toMediaProxy } from '../core/signed-url'
 import { sniffImage } from '../core/sniff'
+import {
+	buildSauceNaoRequest,
+	parseSauceNao,
+	SauceNaoHost,
+} from '../providers/saucenao'
 import {
 	buildTraceMoeRequest,
 	parseTraceMoe,
@@ -15,7 +21,14 @@ import {
 import { refreshAttachmentUrl } from './discord-modules'
 import { sendRequest } from './http'
 import type { SearchSession, SearchState } from '../core/session'
-import type { ErrorCategory, ImageTarget, ProviderOutcome } from '../core/types'
+import type { ProviderSpec } from '../core/settings'
+import type {
+	ErrorCategory,
+	ImageTarget,
+	ProviderOutcome,
+	ProviderOutcomes,
+	SearchOutcome,
+} from '../core/types'
 
 const DownloadHosts = [
 	'cdn.discordapp.com',
@@ -26,24 +39,37 @@ const DownloadHosts = [
 
 export interface SearchCallbacks {
 	onState(state: SearchState): void
-	onOutcome(outcome: ProviderOutcome): void
+	onOutcome(outcome: SearchOutcome): void
 }
 
-export async function searchTraceMoe(
+interface Image {
+	bytes: Uint8Array
+	mime: string
+	ext: string
+}
+
+// One download, then every chosen provider in parallel
+export async function searchImage(
 	session: SearchSession,
 	target: ImageTarget,
+	providers: ProviderSpec[],
 	{ onState, onOutcome }: SearchCallbacks,
 ) {
+	if (!providers.length) return
+
 	const token = session.begin()
 	if (token === undefined) return
 
 	const update = (state: SearchState) => {
 		if (session.isCurrent(token)) onState(state)
 	}
-	const done = (outcome: ProviderOutcome) => {
+	const done = (outcome: SearchOutcome) => {
 		if (!session.isCurrent(token)) return
 		session.finish(token)
-		onState(outcome.kind === 'results' ? 'done' : 'failed')
+		const anyResults =
+			outcome.kind === 'providers' &&
+			Object.values(outcome.outcomes).some(item => item?.kind === 'results')
+		onState(anyResults ? 'done' : 'failed')
 		onOutcome(outcome)
 	}
 
@@ -55,26 +81,56 @@ export async function searchTraceMoe(
 		update('downloading')
 		const image = await download(session, token, fresh)
 		if (!session.isCurrent(token)) return
-		if (image.kind === 'error') return done(image)
+		if ('kind' in image) return done(image)
 
 		update('searching')
-		const request = buildTraceMoeRequest(image.bytes, image.mime)
-		const pending = sendRequest({
-			...request,
-			allowedHosts: [TraceMoeHost],
-			maxBytes: MaxResponseBytes,
-			timeoutMs: ProviderTimeoutMs,
-		})
-		session.onCancel(pending.abort)
+		const settled = await Promise.all(
+			providers.map(async spec => {
+				const outcome = await runProvider(session, spec, image).catch(
+					(): ProviderOutcome => ({ kind: 'error', category: 'unexpected' }),
+				)
+				return [spec.id, outcome] as const
+			}),
+		)
+		if (!session.isCurrent(token)) return
 
-		const response = await pending.promise
-		if (response.kind === 'error')
-			return done({ kind: 'error', category: errorFor(response.category) })
-
-		done(parseTraceMoe(response.status, response.text ?? ''))
+		const outcomes: ProviderOutcomes = {}
+		for (const [id, outcome] of settled) outcomes[id] = outcome
+		done({ kind: 'providers', outcomes })
 	} catch {
 		done({ kind: 'error', category: 'unexpected' })
 	}
+}
+
+async function runProvider(
+	session: SearchSession,
+	spec: ProviderSpec,
+	image: Image,
+): Promise<ProviderOutcome> {
+	const request =
+		spec.id === 'tracemoe'
+			? buildTraceMoeRequest(image.bytes, image.mime)
+			: buildSauceNaoRequest(
+					image.bytes,
+					image.mime,
+					image.ext,
+					spec.key,
+					randomBoundary(),
+				)
+	const pending = sendRequest({
+		...request,
+		allowedHosts: [spec.id === 'tracemoe' ? TraceMoeHost : SauceNaoHost],
+		maxBytes: MaxResponseBytes,
+		timeoutMs: ProviderTimeoutMs,
+	})
+	session.onCancel(pending.abort)
+
+	const response = await pending.promise
+	if (response.kind === 'error')
+		return { kind: 'error', category: errorFor(response.category) }
+
+	const parse = spec.id === 'tracemoe' ? parseTraceMoe : parseSauceNao
+	return parse(response.status, response.text ?? '')
 }
 
 async function freshTarget(
@@ -96,7 +152,7 @@ async function download(
 	session: SearchSession,
 	token: number,
 	target: ImageTarget,
-) {
+): Promise<Image | { kind: 'error'; category: ErrorCategory }> {
 	let category: { kind: 'error'; category: ErrorCategory } = {
 		kind: 'error',
 		category: 'bad-image',
@@ -126,9 +182,9 @@ async function download(
 		const sniffed = sniffImage(response.bytes)
 		if (sniffed)
 			return {
-				kind: 'image' as const,
 				bytes: response.bytes,
 				mime: sniffed.mime,
+				ext: sniffed.ext,
 			}
 
 		category = { kind: 'error', category: 'bad-image' }

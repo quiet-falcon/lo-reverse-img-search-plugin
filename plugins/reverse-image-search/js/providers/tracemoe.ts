@@ -88,6 +88,7 @@ function toResult(value: unknown): ProviderResult | undefined {
 			: undefined
 
 	const result: ProviderResult = {
+		provider: 'tracemoe',
 		title: name,
 		detail: detailFor(value),
 		similarity,
