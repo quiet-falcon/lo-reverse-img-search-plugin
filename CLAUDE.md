@@ -341,7 +341,7 @@ Rules:
 | Priority | Entry point | Evidence | Plan |
 | --- | --- | --- | --- |
 | 1 | `LongPressMessageActionSheet` row | [S] [Message Logger](https://github.com/Valenced/valenced-community-plugins/blob/ef8f4ff782033ade38aa555b751dfb8e2350ad31/plugins/message-logger/js/actionsheet.tsx) | Primary |
-| 2 | `MediaModalOverlayHeader` button | [C] [Pop Out Player, Discord 350.4](https://github.com/bleelblep/bleel-bazinga-repo/blob/b3dc168208e6de58027af420f5fbb4d730681ce5/plugins/pocket-browser/js/popout/viewerButton.tsx) | Add after P0 confirms it |
+| 2 | `MediaModalOverlayHeader` button | [S] Device-tested on 352.6, after [Pop Out Player, Discord 350.4](https://github.com/bleelblep/bleel-bazinga-repo/blob/b3dc168208e6de58027af420f5fbb4d730681ce5/plugins/pocket-browser/js/popout/viewerButton.tsx) | Add after P0 confirms it |
 | 3 | `openLazy` key `MediaShareActionSheet` | [Old Revenge plugin](https://github.com/Angelix1/MP/blob/770b1f903b6f4d880d535beb27067552efd92cdf/vendetta/ris/index.jsx) | Use only if P0 finds it |
 
 If one entry point fails, keep the others working. Never let a patch failure break Discord's own sheet.
@@ -720,8 +720,8 @@ Acceptance:
 Work:
 
 - Target extraction and signed URL logic. **Done.**
-- Long-press row, and viewer button if confirmed. **Done, device test pending.**
-- Search sheet with hand-off rows. **Done, device test pending.**
+- Long-press row, and viewer button if confirmed. **Done.**
+- Search sheet with hand-off rows. **Done.**
 
 Stale links are not refreshed until P2, so a very old message may fail in a browser hand-off.
 
@@ -734,6 +734,8 @@ Acceptance:
 - Disabling the plugin removes all UI without a reload, or calls `plugin.requireReload()` if it cannot.
 
 This phase is the first useful release candidate.
+
+**P1 passed on 2026-11-06** with alpha5. All 8 engines work, and the viewer button opens the sheet.
 
 ### P2: Byte pipeline and trace.moe
 

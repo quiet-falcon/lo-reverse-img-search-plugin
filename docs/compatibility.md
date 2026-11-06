@@ -60,6 +60,10 @@ Tested with alpha3 on 2026-11-06, using a signed attachment image. trace.moe now
 | Plugin off removes the row | Passed |
 | Spoiler image | Passed: preview stayed hidden until tapped, and search worked |
 | Link preview | Passed with a direct link. A Google search page link has no image to search |
-| Viewer button | Failed on alpha4: button slot found, icon lookup failed. Fixed in alpha5, device test pending |
+| Viewer button | Passed on alpha5: button shows, opens the sheet over the viewer, and Lens works |
 
 Alpha4 confirmed trace.moe works on the original link without the switch.
+
+IQDB can queue for a long time under load. The page showed the image fetched in under a second, so the delay is on IQDB's side.
+
+**P1 passed on 2026-11-06.**
