@@ -179,32 +179,47 @@ describe('targetFromViewer', () => {
 
 describe('handoffImageUrl', () => {
 	const [target] = targetsFromMessage({ attachments: [attachment()] })
+	const external = {
+		kind: 'embed' as const,
+		label: 'x',
+		url: 'https://example.com/a.png',
+		proxyUrl: 'https://images-ext-1.discordapp.net/x',
+		spoiler: false,
+	}
 
 	test('prefers the proxy link', () => {
-		expect(handoffImageUrl(target!, false)).toBe(Media)
+		expect(handoffImageUrl(target!)).toBe(Media)
 	})
 
-	test('uses the original link when asked', () => {
-		expect(handoffImageUrl(target!, true)).toBe(Cdn)
+	test('switches to the original link', () => {
+		expect(handoffImageUrl(target!, { swap: true })).toBe(Cdn)
+	})
+
+	test('starts with the original for engines that prefer it', () => {
+		expect(handoffImageUrl(target!, { prefersOriginal: true })).toBe(Cdn)
+		expect(
+			handoffImageUrl(target!, { prefersOriginal: true, swap: true }),
+		).toBe(Media)
 	})
 
 	test('builds a proxy link when Discord gave none', () => {
 		const { proxyUrl: _, ...rest } = target!
 
-		expect(handoffImageUrl(rest, false)).toBe(Media)
+		expect(handoffImageUrl(rest)).toBe(Media)
 	})
 
-	test('keeps external embed links as they are', () => {
-		const url = 'https://example.com/a.png'
-		const embed = {
-			kind: 'embed' as const,
-			label: 'x',
-			url,
-			proxyUrl: 'https://images-ext-1.discordapp.net/x',
-			spoiler: false,
-		}
+	test("starts external embeds on the site's own link", () => {
+		expect(handoffImageUrl(external)).toBe(external.url)
+	})
 
-		expect(handoffImageUrl(embed, false)).toBe(url)
+	test("switches external embeds to Discord's copy", () => {
+		expect(handoffImageUrl(external, { swap: true })).toBe(external.proxyUrl)
+	})
+
+	test('keeps an external link when there is no copy', () => {
+		const { proxyUrl: _, ...rest } = external
+
+		expect(handoffImageUrl(rest, { swap: true })).toBe(external.url)
 	})
 
 	test('previews through the proxy', () => {

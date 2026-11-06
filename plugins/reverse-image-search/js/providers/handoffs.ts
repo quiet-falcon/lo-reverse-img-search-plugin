@@ -3,6 +3,8 @@ import { encodeForHandoff } from '../core/signed-url'
 export interface HandoffProvider {
 	id: string
 	name: string
+	// Set from device results, for engines that reject Discord's preview link
+	prefersOriginal?: boolean
 	buildUrl(imageUrl: string): string
 }
 
@@ -10,9 +12,11 @@ const prefixed = (
 	id: string,
 	name: string,
 	prefix: string,
+	prefersOriginal = false,
 ): HandoffProvider => ({
 	id,
 	name,
+	prefersOriginal,
 	buildUrl: imageUrl => prefix + encodeForHandoff(imageUrl),
 })
 
@@ -31,6 +35,6 @@ export const HandoffProviders = [
 	prefixed('tineye', 'TinEye', 'https://www.tineye.com/search?url='),
 	prefixed('saucenao', 'SauceNAO', 'https://saucenao.com/search.php?url='),
 	prefixed('iqdb', 'IQDB', 'https://iqdb.org/?url='),
-	prefixed('tracemoe', 'trace.moe', 'https://trace.moe/?url='),
+	prefixed('tracemoe', 'trace.moe', 'https://trace.moe/?url=', true),
 	prefixed('imgops', 'ImgOps', 'https://imgops.com/start?url='),
 ]

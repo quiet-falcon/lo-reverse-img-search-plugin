@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import {
 	appendChild,
+	describeTree,
 	findByType,
 	findOverlayButton,
 	insertBefore,
@@ -87,5 +88,36 @@ describe('overlay buttons', () => {
 
 	test('returns nothing without a button', () => {
 		expect(findOverlayButton({ props: { children: 'text' } })).toBeUndefined()
+	})
+})
+
+describe('describeTree', () => {
+	test('lists component names and prop keys, never values', () => {
+		function Header() {
+			return null
+		}
+		const lines = describeTree({
+			type: Header,
+			props: {
+				secret: 'https://cdn.discordapp.com/x',
+				children: [{ type: 'View', props: {} }],
+			},
+		})
+
+		expect(lines).toEqual(['0:Header(children secret)', '1:View()'])
+		expect(lines.join()).not.toContain('https')
+	})
+
+	test('stays bounded', () => {
+		const wide = {
+			props: {
+				children: Array.from({ length: 100 }, () => ({
+					type: 'View',
+					props: {},
+				})),
+			},
+		}
+
+		expect(describeTree(wide).length).toBeLessThanOrEqual(40)
 	})
 })

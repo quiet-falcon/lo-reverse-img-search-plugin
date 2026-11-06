@@ -5,6 +5,7 @@ import {
 	formatReport,
 	recordError,
 	recordFields,
+	recordNames,
 	recordSheetKey,
 	sanitiseName,
 } from '../plugins/reverse-image-search/js/core/probe'
@@ -126,5 +127,16 @@ describe('formatReport', () => {
 		expect(report).toContain('MediaShareActionSheet')
 		expect(report).not.toContain('https://')
 		expect(report).not.toContain('a.png')
+	})
+})
+
+describe('recordNames', () => {
+	test('keeps order, cleans IDs, and records only once', () => {
+		const state = createProbeState()
+
+		recordNames(state, 'viewerTree', ['0:Header()', '1:Row-1234567890()'])
+		recordNames(state, 'viewerTree', ['other'])
+
+		expect(state.fields.viewerTree).toEqual(['0:Header()', '1:Row-#()'])
 	})
 })

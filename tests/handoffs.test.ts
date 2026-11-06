@@ -18,4 +18,10 @@ describe('HandoffProviders', () => {
 			expect(url).not.toContain('%2526')
 		}
 	})
+
+	test('starts trace.moe on the original link', () => {
+		const prefers = HandoffProviders.filter(item => item.prefersOriginal)
+
+		expect(prefers.map(item => item.id)).toEqual(['tracemoe'])
+	})
 })

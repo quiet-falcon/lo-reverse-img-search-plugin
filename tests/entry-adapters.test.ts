@@ -165,6 +165,20 @@ describe('patchMediaViewer', () => {
 		expect(opened).toHaveLength(1)
 	})
 
+	test('reports why the button is missing', () => {
+		const statuses: string[] = []
+		const tree = { type: 'View', props: { children: [] } }
+		patchMediaViewer(
+			() => {},
+			status => statuses.push(status),
+		)
+
+		onViewerHeader({ MediaModalOverlayHeader: () => tree })
+		hooks.at(-1)!.hook([{ source: { uri: Url } }], () => tree)
+
+		expect(statuses).toEqual(['no button slot'])
+	})
+
 	test('adds nothing for a video', () => {
 		const { tree } = run({ source: { uri: Url, contentType: 'video/mp4' } })
 

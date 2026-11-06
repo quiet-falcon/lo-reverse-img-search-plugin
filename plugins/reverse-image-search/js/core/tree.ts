@@ -5,6 +5,8 @@ interface Node {
 }
 
 const MaxDepth = 14
+const DescribeDepth = 4
+const MaxDescribed = 40
 
 const isNode = (value: unknown): value is Node =>
 	typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -79,4 +81,37 @@ export function insertBefore(
 
 	children.splice(index, 0, child)
 	holder.props.children = children
+}
+
+const nameOf = (type: unknown) => {
+	if (typeof type === 'string') return type
+	if (typeof type === 'function')
+		return (
+			(type as { displayName?: string }).displayName || type.name || 'Anonymous'
+		)
+	if (typeof type === 'object' && type !== null) return 'Wrapped'
+	return 'Unknown'
+}
+
+// Component names and prop keys only, for device diagnostics
+export function describeTree(tree: unknown) {
+	const lines: string[] = []
+
+	const visit = (node: unknown, depth: number) => {
+		if (depth > DescribeDepth || lines.length >= MaxDescribed) return
+		if (Array.isArray(node)) {
+			for (const child of node) visit(child, depth)
+			return
+		}
+		if (!isNode(node)) return
+
+		const keys = Object.keys(node.props ?? {})
+			.sort()
+			.join(' ')
+		lines.push(`${depth}:${nameOf(node.type)}(${keys})`)
+		visit(node.props?.children, depth + 1)
+	}
+
+	visit(tree, 0)
+	return lines
 }

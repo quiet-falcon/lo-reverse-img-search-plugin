@@ -61,11 +61,11 @@ function SearchSheet({ targets }: SearchSheetProps) {
 }
 
 function Handoffs({ target }: { target: ImageTarget }) {
-	const [useOriginal, setUseOriginal] = useState(false)
+	const [swap, setSwap] = useState(false)
 	const [revealed, setRevealed] = useState(!target.spoiler)
 
 	const open = (id: string) => {
-		openHandoff(id, target, useOriginal).catch(() => {
+		openHandoff(id, target, swap).catch(() => {
 			ToastActionCreators.open('RIS_OPEN_FAILED', {
 				text: "Couldn't open that engine. Try another one.",
 			})
@@ -103,10 +103,10 @@ function Handoffs({ target }: { target: ImageTarget }) {
 			</ActionSheetRow.Group>
 			<ActionSheetRow.Group>
 				<ActionSheetSwitchRow
-					label="Use original link"
+					label="Switch image link"
 					subLabel="Try this if an engine can't load the image."
-					value={useOriginal}
-					onValueChange={setUseOriginal}
+					value={swap}
+					onValueChange={setSwap}
 				/>
 			</ActionSheetRow.Group>
 		</Stack>

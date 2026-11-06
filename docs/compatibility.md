@@ -38,11 +38,26 @@ Record pass or fail for each engine, on the default link and on the original lin
 
 | Engine | Default link | Original link |
 | --- | --- | --- |
-| Google Lens | Not run | Not run |
-| Yandex | Not run | Not run |
-| Bing | Not run | Not run |
-| TinEye | Not run | Not run |
-| SauceNAO | Not run | Not run |
-| IQDB | Not run | Not run |
-| trace.moe | Not run | Not run |
-| ImgOps | Not run | Not run |
+| Google Lens | Passed | Not run |
+| Yandex | Passed | Not run |
+| Bing | Passed | Not run |
+| TinEye | Passed | Not run |
+| SauceNAO | Passed | Not run |
+| IQDB | Passed | Not run |
+| trace.moe | Failed | Passed |
+| ImgOps | Passed | Not run |
+
+Tested with alpha3 on 2026-11-06, using a signed attachment image. trace.moe now starts on the original link.
+
+### Other alpha3 results
+
+| Check | Result |
+| --- | --- |
+| Row only on image messages, no duplicates, Discord rows intact | Passed |
+| Picker for several images | Passed |
+| PNG uploaded from the phone, through Lens | Passed |
+| Video message shows no row | Passed |
+| Plugin off removes the row | Passed |
+| Spoiler image | Search worked before reveal. Preview hiding not yet confirmed |
+| Link preview from a Google image link | Failed on both links. Cause not yet known |
+| Viewer button | Failed: no button appeared. Alpha4 reports why |

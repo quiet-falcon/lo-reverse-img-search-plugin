@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.1.0-alpha3",
+	"version": "0.1.0-alpha4",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -217,7 +217,7 @@ P0 run on 2026-11-06:
 
 | Step | Result |
 | --- | --- |
-| `bun run verify` | **Passed:** lint, type-check, 64 tests, build |
+| `bun run verify` | **Passed:** lint, type-check, 72 tests, build |
 | Pinned install and `--frozen-lockfile` | **Passed** on GitHub Actions against real GitHub, and `bun.lock` did not change |
 | Gradle packaging | **Passed** on GitHub Actions for production and probe ZIPs, with no token |
 | Hand-built probe ZIP | **Passed** `generate-index`, with `manifest.json` and `index.js` at its root |
@@ -485,7 +485,7 @@ Try these in order, stopping at the first valid image:
 - [A, gate P2] `format=jpeg` works and a signed media proxy URL returns an image content type.
 - [A, gate P2] A video attachment returns a still frame the same way.
 
-For hand-offs, prefer the media proxy URL, because it should return a proper image type. If an engine rejects it, fall back to the original URL for that engine.
+For hand-offs, prefer the media proxy URL, because it returns a proper image type. [S] trace.moe rejects it, so trace.moe starts on the original URL. The **Switch image link** row tries the other link, and for external embeds it switches to Discord's `images-ext` copy.
 
 ### Limits
 
@@ -856,8 +856,8 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 5 | Does `MediaModalOverlayHeader` exist on the target build? | Passed: plain function export | Use another viewer path, or long-press only |
 | 6 | Does `MediaShareActionSheet` still exist? | Passed | Drop it |
 | 7 | Exact attachment, embed, and video fields | Attachment and embed passed, video gate P1 | Update `target.ts` |
-| 8 | Which hand-off engines accept signed Discord URLs? | P1 | Hide failing engines |
-| 9 | Do proxy URLs fix the old `octet-stream` failure? | P1 | Use original URLs or in-app providers |
+| 8 | Which hand-off engines accept signed Discord URLs? | Passed: all 8, with trace.moe on the original link | Hide failing engines |
+| 9 | Do proxy URLs fix the old `octet-stream` failure? | Passed for 7 engines and a phone PNG in Lens | Use original URLs or in-app providers |
 | 10 | Does `format=jpeg` work on the media proxy? | P2 | Use PNG, then the original |
 | 11 | Does a video URL return a still frame? | P2 | Disable video search |
 | 12 | Do binary XHR and progress events work? | P2 | Use `fetch` with `Content-Length` and declared size checks |
@@ -870,7 +870,7 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 19 | Does the Pages update run from the release workflow? | P5 | Add a deployment job |
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
 | 21 | Does `maxResults` raise Web Detection's list sizes? | P4 | Use the default size and keep "at least" wording |
-| 22 | Does a TinEye hand-off open with Discord's signed URL? | P1 | Use the media proxy URL or Lens |
+| 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
 
 Limitations already known:
 

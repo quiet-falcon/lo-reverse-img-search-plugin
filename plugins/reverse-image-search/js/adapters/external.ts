@@ -12,12 +12,17 @@ export const handoffChoices = HandoffProviders.map(({ id, name }) => ({
 export async function openHandoff(
 	id: string,
 	target: ImageTarget,
-	useOriginal: boolean,
+	swap: boolean,
 ) {
 	const provider = HandoffProviders.find(item => item.id === id)
 	if (!provider) return false
 
-	const url = provider.buildUrl(handoffImageUrl(target, useOriginal))
+	const url = provider.buildUrl(
+		handoffImageUrl(target, {
+			prefersOriginal: provider.prefersOriginal,
+			swap,
+		}),
+	)
 	if (!isHttps(url)) return false
 
 	await Linking.openURL(url)

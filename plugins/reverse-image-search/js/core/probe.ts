@@ -14,6 +14,7 @@ export type ProbeGroup =
 	| 'embedImage'
 	| 'viewerProps'
 	| 'viewerSource'
+	| 'viewerTree'
 
 export interface ProbeState {
 	entryPoints: Record<string, string>
@@ -57,6 +58,17 @@ export function recordFields(
 	state.fields[group] = [...new Set([...(state.fields[group] ?? []), ...names])]
 		.sort()
 		.slice(0, MaxNames)
+}
+
+// Keeps order, because tree lines read top to bottom
+export function recordNames(
+	state: ProbeState,
+	group: ProbeGroup,
+	names: string[],
+) {
+	if (state.fields[group]?.length) return
+
+	state.fields[group] = names.map(sanitiseName).slice(0, MaxNames)
 }
 
 export function recordSheetKey(state: ProbeState, key: unknown) {

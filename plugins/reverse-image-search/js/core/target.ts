@@ -114,11 +114,31 @@ export function targetFromViewer(source: unknown) {
 
 const isProxy = (url: string) => isDiscordMedia(url) && !url.includes('://cdn.')
 
-// External embed links carry no Discord signature, so they stay as they are
-export function handoffImageUrl(target: ImageTarget, useOriginal: boolean) {
-	if (useOriginal || !isDiscordMedia(target.url)) return target.url
+export interface HandoffLinkOptions {
+	prefersOriginal?: boolean
+	swap?: boolean
+}
 
-	return target.proxyUrl ?? toMediaProxy(target.url)
+// Each image has a preferred link and one fallback, which the switch picks
+export function handoffImageUrl(
+	target: ImageTarget,
+	{ prefersOriginal = false, swap = false }: HandoffLinkOptions = {},
+) {
+	const [preferred, other] = linkPair(target, prefersOriginal)
+
+	return swap ? other : preferred
+}
+
+function linkPair(target: ImageTarget, prefersOriginal: boolean) {
+	// External embed links carry no Discord signature, so they come first
+	if (!isDiscordMedia(target.url))
+		return [target.url, target.proxyUrl ?? target.url] as const
+
+	const proxy = target.proxyUrl ?? toMediaProxy(target.url)
+
+	return prefersOriginal
+		? ([target.url, proxy] as const)
+		: ([proxy, target.url] as const)
 }
 
 export function previewUrl(target: ImageTarget) {
