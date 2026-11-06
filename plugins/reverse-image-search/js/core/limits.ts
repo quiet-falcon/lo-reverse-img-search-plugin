@@ -6,3 +6,4 @@ export const MaxVisionResponseBytes = 4 * 1024 * 1024
 export const DownloadTimeoutMs = 20_000
 export const ProviderTimeoutMs = 30_000
 export const MaxEdge = 1600
+export const HashEdge = 256

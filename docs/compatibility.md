@@ -178,7 +178,7 @@ Tested with `0.5.0-alpha1` (commit `2e6ad72`) on 2026-11-06, Discord 352.6 canar
 | Tagless PNG | Passed: No AI tags found |
 | SynthID row opens the checker | Passed |
 | Signal icons | Passed: warning and profile icons seen |
-| No Vision option in settings | Awaiting Sensei's confirmation |
+| No Vision option in settings | Passed |
 
 Gates closed by this run:
 
@@ -186,3 +186,20 @@ Gates closed by this run:
 | --- | --- | --- |
 | 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived and JPEG XMP did not, on one upload each |
 | 30 | Author and user record fields | Passed: both hold `avatar`, `banner`, `globalName`, `bot`, and `discriminator` |
+
+## P6 device checks
+
+Built as `0.6.0-alpha1`. These have not been run on a device yet.
+
+| Check | Result |
+| --- | --- |
+| Save an image, and it appears in settings | Not run |
+| Same image matches | Not run |
+| Resized JPEG copy matches | Not run |
+| Mirrored copy matches | Not run |
+| Different image shows Not on your list | Not run |
+| Plain image shows Too plain to compare | Not run |
+| Both pictures show side by side | Not run |
+| Saved avatar matches by itself on Check Profile | Not run |
+| Hashing doesn't visibly freeze the app | Not run |
+| List survives a reload, and an entry can be removed | Not run |

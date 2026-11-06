@@ -32,6 +32,7 @@ import {
 } from '../core/settings'
 import { previewUrl } from '../core/target'
 import { AiCheck } from './AiCheck'
+import { HashCheck } from './HashCheck'
 import { SignalStrip } from './SignalStrip'
 import type { SearchState } from '../core/session'
 import type { ProviderSpec } from '../core/settings'
@@ -95,7 +96,7 @@ function SearchSheet({ targets, header }: SearchSheetProps) {
 				{header && (
 					<SignalStrip title={header.title} signals={header.signals} />
 				)}
-				{target && <Handoffs target={target} />}
+				{target && <Handoffs target={target} owner={header?.title} />}
 				{!target && targets.length > 0 && (
 					<ActionSheetRow.Group title="Choose an image">
 						{targets.map(item => (
@@ -113,7 +114,7 @@ function SearchSheet({ targets, header }: SearchSheetProps) {
 	)
 }
 
-function Handoffs({ target }: { target: ImageTarget }) {
+function Handoffs({ target, owner }: { target: ImageTarget; owner?: string }) {
 	const [swap, setSwap] = useState(false)
 	const [revealed, setRevealed] = useState(!target.spoiler)
 
@@ -145,6 +146,7 @@ function Handoffs({ target }: { target: ImageTarget }) {
 				</ActionSheetRow.Group>
 			)}
 			<InAppSearch target={target} />
+			<HashCheck target={target} owner={owner} />
 			<AiCheck target={target} />
 			<Text variant="text-sm/normal" color="text-muted">
 				{handoffNotice(target)}

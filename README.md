@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P6 next](https://img.shields.io/badge/status-P6%20next-blue)](#project-status)
+[![Status: P6 in testing](https://img.shields.io/badge/status-P6%20in%20testing-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -32,7 +32,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
 | **P4** | Oldest-first TinEye and row labels. Google Vision parked | ✅ Passed |
 | **P5** | Profile check: account age, avatars, banners, and AI tags | ✅ Passed |
-| **P6** | Local image hash list | ⬜ Not started |
+| **P6** | Local image hash list | 🧪 Built, needs device testing |
 | **P7** | Community hash list | ⬜ Not started |
 | **P8** | Link risk checks | ⬜ Not started |
 | **P9** | Crop and mirror search | ⏸️ Parked with Vision |
@@ -72,7 +72,8 @@ An in-app copy check using Google Cloud Vision is built but parked, because it n
 
 - **Profile check ✅:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
 - **AI image signals ✅:** read AI tags where Discord keeps them, which so far means PNG text but not JPEG labels, plus a SynthID row in the browser.
-- **Hash lists ⬜:** save an image to your own list, then match reused copies on your device. A curated community list comes after that.
+- **My list 🧪:** save an image to your own list, then match resized, recompressed, or mirrored copies on your phone. Cropped copies can slip through.
+- **Community list ⬜:** a curated, signed list comes after that.
 - **Link risk ⬜:** flag known phishing domains and lookalikes of sites like `discord.com`.
 
 All of these appear as labelled signals, and each one says what it's based on.
@@ -115,6 +116,7 @@ These rules are built into the project:
 | Browser hand-off | The image link, including channel ID, attachment ID, filename, and a temporary signature |
 | Avatar or banner hand-off | The image link, including the user's ID |
 | AI tag check | Nothing outside Discord. The file downloads from Discord and is read on your phone |
+| My list | Nothing outside Discord. The fingerprint and small picture stay on your phone |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
 | Result thumbnails | Your IP address, sent to the host serving each thumbnail |
 

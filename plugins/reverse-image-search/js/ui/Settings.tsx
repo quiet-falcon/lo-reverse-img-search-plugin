@@ -10,7 +10,9 @@ import {
 	openVisionKeyPage,
 } from '../adapters/external'
 import { updateSettings, useSettings } from '../adapters/settings-store'
+import { dateText } from '../core/account-age'
 import { VisionAvailable } from '../core/features'
+import { removeSaved } from '../core/hash-list'
 import { cleanKey, looksLikeKey, looksLikeVisionKey } from '../core/settings'
 import { ProbeSection } from './ProbeSettings'
 import type { PluginSettingsComponent } from '@valenced/plugins/types'
@@ -170,6 +172,27 @@ export default function Settings({ api: { plugin } }: SettingsProps) {
 							</TableRowGroup>
 						</Stack>
 					)}
+
+					<TableRowGroup title="My list">
+						{settings.hashList.length === 0 && (
+							<TableRow
+								label="No saved images"
+								subLabel="Use Save to my list on any image."
+							/>
+						)}
+						{settings.hashList.map(entry => (
+							<TableRow
+								key={entry.hash}
+								label={entry.label}
+								subLabel={`Saved ${dateText(entry.addedAt)}. Tap to remove.`}
+								onPress={() =>
+									updateSettings({
+										hashList: removeSaved(settings.hashList, entry.hash),
+									})
+								}
+							/>
+						))}
+					</TableRowGroup>
 
 					<TableRowGroup title="Privacy">
 						<TableRow
