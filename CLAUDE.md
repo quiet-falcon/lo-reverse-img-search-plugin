@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.3.0-alpha3",
+	"version": "0.4.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -283,6 +283,7 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `session.ts`: Search state machine with cancellation.
 - `fusion.ts`: Tiering, dedupe, and ranking.
 - `copy-check.ts`: Counts sites and sets the copy band from Vision's lists.
+- `base64.ts`: Encodes image bytes for Vision.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
 - `acquire.ts`: Lists the download URLs to try, in order.
@@ -378,6 +379,7 @@ Provider facts:
 - [S] Vision limits: 20 MB per image and 10 MB per JSON request.
 - [S] The Vision API and billing must both be enabled on the Google Cloud project.
 - [S] `pageTitle` can contain HTML tags, so strip them before showing it.
+- [A, gate P4] Vision JSON requests work from the phone, and encoding a normal image doesn't visibly freeze the app.
 - [S] Web Detection returns lists only: `fullMatchingImages`, `partialMatchingImages`, `pagesWithMatchingImages`, `visuallySimilarImages`, `webEntities`, and `bestGuessLabels`. It has no total-count field.
 
 Research limit: no live provider call has been made yet, and SauceNAO's official API page could not be reached. Its contract above comes from a maintained client library. Confirm it before relying on it.

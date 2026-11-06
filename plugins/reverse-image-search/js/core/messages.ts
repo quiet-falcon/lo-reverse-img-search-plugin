@@ -10,11 +10,13 @@ import type {
 export const ProviderNames: Record<ProviderId, string> = {
 	tracemoe: 'trace.moe',
 	saucenao: 'SauceNAO',
+	vision: 'Google Vision',
 }
 
 export const ProviderUses: Record<ProviderId, string> = {
 	tracemoe: 'anime screenshots',
 	saucenao: 'art and manga',
+	vision: 'photos, memes, and screenshots',
 }
 
 // Calm wording on purpose. docs/privacy.md has the full detail
@@ -23,6 +25,8 @@ export const ConsentNotices: Record<ProviderId, string> = {
 		"trace.moe receives the image to find which anime it's from. Like any website, it also sees your connection details. trace.moe says it doesn't keep searched images.",
 	saucenao:
 		"SauceNAO receives the image to find the artwork's source. Like any website, it also sees your connection details.",
+	vision:
+		'Google Vision receives the image to find where it appears online and read any text in it. Like any website, it also sees your connection details. Searches use your own Google Cloud key.',
 }
 
 export function errorMessage(category: ErrorCategory, provider: string) {
@@ -45,6 +49,8 @@ export function errorMessage(category: ErrorCategory, provider: string) {
 			return "Discord couldn't renew this image's link. Reopen the message, then try again."
 		case 'bad-key':
 			return `${provider} didn't accept your API key. Check it in plugin settings.`
+		case 'needs-setup':
+			return `${provider} isn't set up for this key. In Google Cloud, turn on the Cloud Vision API and billing, then try again.`
 		default:
 			return 'Something went wrong. Try again, or use a browser button.'
 	}
@@ -113,3 +119,14 @@ export function providerStatus(id: ProviderId, outcome: ProviderOutcome) {
 
 export const percent = (similarity: number) =>
 	`${(similarity * 100).toFixed(1)}%`
+
+// Vision gives no score, so showing 0% would mislead
+export const matchLabel = (result: ProviderResult) =>
+	result.noScore
+		? TierLabels[result.tier]
+		: `${TierLabels[result.tier]}, ${percent(result.similarity)}`
+
+export const noMatchHint = (ids: ProviderId[]) =>
+	ids.includes('vision')
+		? 'No confident match. Try a browser button for a second opinion.'
+		: 'No confident match. trace.moe only knows anime episodes, and SauceNAO mostly knows art and manga. Try a browser button for photos and memes.'

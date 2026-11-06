@@ -6,7 +6,9 @@
 
 **SauceNAO** gets the image bytes, your IP address, and your API key when you tap a search button that names it. The plugin doesn't claim SauceNAO deletes images, because its terms haven't been checked for that. The upload is named `image.jpg` (or the matching type) and carries no Discord link.
 
-Both services see your IP address, as any website does. In the app, the first-search notice calls this "connection details" so it reads calmly. It means the same thing.
+**Google Vision** gets the image bytes, your IP address, and your API key when you tap a button that names it. The plugin doesn't claim Google deletes images. The upload is base64 JSON with no filename or Discord link. If **Read text in images** is on, Google also reads text in the image.
+
+The services above see your IP address, as any website does. In the app, the first-search notice calls this "connection details" so it reads calmly. It means the same thing.
 
 Each search sends the image only to the services named on the button. The first search with each service shows a one-time notice, and **Show first-search notices again** in settings brings them back.
 
@@ -22,7 +24,7 @@ Dev builds keep version numbers, sheet keys, and field names in memory. They nev
 
 ## API keys
 
-Your SauceNAO key is stored as plain text in this plugin's settings file on your phone. Other plugins may be able to read it, because plugins share Discord's process. The key is only ever sent to `saucenao.com`, and is never logged.
+Your SauceNAO and Google Vision keys are stored as plain text in this plugin's settings file on your phone. Other plugins may be able to read them, because plugins share Discord's process. Each key is only ever sent to its own service, `saucenao.com` or `vision.googleapis.com`, and is never logged. Vision charges your Google Cloud account past the free tier, so restrict the key to the Cloud Vision API.
 
 ## Planned network hosts
 

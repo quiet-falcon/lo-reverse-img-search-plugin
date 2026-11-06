@@ -3,6 +3,8 @@ import {
 	DownloadTimeoutMs,
 	MaxImageBytes,
 	MaxResponseBytes,
+	MaxVisionImageBytes,
+	MaxVisionResponseBytes,
 	ProviderTimeoutMs,
 } from '../core/limits'
 import { randomBoundary } from '../core/multipart'
@@ -18,6 +20,11 @@ import {
 	parseTraceMoe,
 	TraceMoeHost,
 } from '../providers/tracemoe'
+import {
+	buildVisionRequest,
+	parseVision,
+	VisionHost,
+} from '../providers/vision'
 import { refreshAttachmentUrl } from './discord-modules'
 import { sendRequest } from './http'
 import type { SearchSession, SearchState } from '../core/session'
@@ -107,20 +114,14 @@ async function runProvider(
 	spec: ProviderSpec,
 	image: Image,
 ): Promise<ProviderOutcome> {
-	const request =
-		spec.id === 'tracemoe'
-			? buildTraceMoeRequest(image.bytes, image.mime)
-			: buildSauceNaoRequest(
-					image.bytes,
-					image.mime,
-					image.ext,
-					spec.key,
-					randomBoundary(),
-				)
+	if (spec.id === 'vision' && image.bytes.length > MaxVisionImageBytes)
+		return { kind: 'error', category: 'too-large' }
+
+	const { request, host, parse, maxBytes } = providerCall(spec, image)
 	const pending = sendRequest({
 		...request,
-		allowedHosts: [spec.id === 'tracemoe' ? TraceMoeHost : SauceNaoHost],
-		maxBytes: MaxResponseBytes,
+		allowedHosts: [host],
+		maxBytes,
 		timeoutMs: ProviderTimeoutMs,
 	})
 	session.onCancel(pending.abort)
@@ -129,8 +130,39 @@ async function runProvider(
 	if (response.kind === 'error')
 		return { kind: 'error', category: errorFor(response.category) }
 
-	const parse = spec.id === 'tracemoe' ? parseTraceMoe : parseSauceNao
 	return parse(response.status, response.text ?? '')
+}
+
+function providerCall(spec: ProviderSpec, image: Image) {
+	switch (spec.id) {
+		case 'tracemoe':
+			return {
+				request: buildTraceMoeRequest(image.bytes, image.mime),
+				host: TraceMoeHost,
+				parse: parseTraceMoe,
+				maxBytes: MaxResponseBytes,
+			}
+		case 'saucenao':
+			return {
+				request: buildSauceNaoRequest(
+					image.bytes,
+					image.mime,
+					image.ext,
+					spec.key,
+					randomBoundary(),
+				),
+				host: SauceNaoHost,
+				parse: parseSauceNao,
+				maxBytes: MaxResponseBytes,
+			}
+		case 'vision':
+			return {
+				request: buildVisionRequest(image.bytes, spec.key, spec.text),
+				host: VisionHost,
+				parse: parseVision,
+				maxBytes: MaxVisionResponseBytes,
+			}
+	}
 }
 
 async function freshTarget(

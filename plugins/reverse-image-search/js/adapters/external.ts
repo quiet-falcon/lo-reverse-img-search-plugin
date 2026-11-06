@@ -3,11 +3,13 @@ import { isHttps } from '../core/signed-url'
 import { handoffImageUrl } from '../core/target'
 import { HandoffProviders } from '../providers/handoffs'
 import { SauceNaoKeyPage } from '../providers/saucenao'
+import { VisionKeyPage } from '../providers/vision'
 import type { ImageTarget } from '../core/types'
 
-export const handoffChoices = HandoffProviders.map(({ id, name }) => ({
+export const handoffChoices = HandoffProviders.map(({ id, name, note }) => ({
 	id,
 	name,
+	note,
 }))
 
 export async function openHandoff(
@@ -42,4 +44,5 @@ const PrivacyPage =
 	'https://github.com/quiet-falcon/lo-reverse-img-search-plugin/blob/main/docs/privacy.md'
 
 export const openKeyPage = () => Linking.openURL(SauceNaoKeyPage)
+export const openVisionKeyPage = () => Linking.openURL(VisionKeyPage)
 export const openPrivacyPage = () => Linking.openURL(PrivacyPage)

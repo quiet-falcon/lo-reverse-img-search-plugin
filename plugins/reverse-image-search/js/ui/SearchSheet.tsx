@@ -8,29 +8,32 @@ import { Image, View } from 'react-native'
 import { handoffChoices, openHandoff, openResult } from '../adapters/external'
 import { searchImage } from '../adapters/search'
 import { recordConsent, useSettings } from '../adapters/settings-store'
+import { CopyLimits, copyDetail, copyHeadline } from '../core/copy-check'
 import { fuseResults } from '../core/fusion'
 import {
 	ConsentNotices,
 	errorMessage,
 	hiddenSummary,
 	joinNames,
+	matchLabel,
+	noMatchHint,
 	ProviderNames,
-	percent,
 	providerStatus,
 	StateMessages,
-	TierLabels,
 	visibleResults,
 } from '../core/messages'
 import { createSearchSession } from '../core/session'
-import { activeProviders, needsConsent } from '../core/settings'
+import { activeProviders, needsConsent, visionSpec } from '../core/settings'
 import { previewUrl } from '../core/target'
 import type { SearchState } from '../core/session'
+import type { ProviderSpec } from '../core/settings'
 import type {
 	ImageTarget,
 	ProviderId,
 	ProviderOutcomes,
 	ProviderResult,
 	SearchOutcome,
+	WebFindings,
 } from '../core/types'
 
 const { ActionSheet, ActionSheetRow, ActionSheetSwitchRow, Stack, Text } =
@@ -38,6 +41,13 @@ const { ActionSheet, ActionSheetRow, ActionSheetSwitchRow, Stack, Text } =
 
 const SheetKey = 'RIS_SEARCH_SHEET'
 const PreviewHeight = 160
+
+type SearchMode = 'search' | 'copies'
+
+interface SearchRun {
+	specs: ProviderSpec[]
+	mode: SearchMode
+}
 
 interface SearchSheetProps {
 	targets: ImageTarget[]
@@ -122,8 +132,13 @@ function Handoffs({ target }: { target: ImageTarget }) {
 				signature.
 			</Text>
 			<ActionSheetRow.Group title="Open in browser">
-				{handoffChoices.map(({ id, name }) => (
-					<ActionSheetRow key={id} label={name} onPress={() => open(id)} />
+				{handoffChoices.map(({ id, name, note }) => (
+					<ActionSheetRow
+						key={id}
+						label={name}
+						subLabel={note}
+						onPress={() => open(id)}
+					/>
 				))}
 			</ActionSheetRow.Group>
 			<ActionSheetRow.Group>
@@ -142,34 +157,42 @@ function InAppSearch({ target }: { target: ImageTarget }) {
 	const settings = useSettings()
 	const providers = activeProviders(settings)
 	const ids = providers.map(spec => spec.id)
+	const copySpec = visionSpec(settings)
 	const session = useRef(createSearchSession()).current
 	const [state, setState] = useState<SearchState>('idle')
 	const [outcome, setOutcome] = useState<SearchOutcome>()
-	const [asking, setAsking] = useState<ProviderId[]>([])
+	const [asking, setAsking] = useState<SearchRun>()
+	const [lastRun, setLastRun] = useState<SearchRun>({
+		specs: providers,
+		mode: 'search',
+	})
+	const lastIds = lastRun.specs.map(spec => spec.id)
 
 	// Closing the sheet or stopping the plugin cancels the search
 	useEffect(() => () => session.cancel(), [session])
 
 	const busy = session.isActive() && state !== 'done' && state !== 'failed'
 
-	const run = () => {
+	const run = (next: SearchRun) => {
 		setOutcome(undefined)
-		searchImage(session, target, providers, {
+		setLastRun(next)
+		searchImage(session, target, next.specs, {
 			onState: setState,
 			onOutcome: setOutcome,
 		})
 	}
 
-	const start = () => {
-		const unseen = needsConsent(settings, providers)
-		if (unseen.length) return setAsking(unseen)
-		run()
+	const start = (next: SearchRun) => {
+		if (needsConsent(settings, next.specs).length) return setAsking(next)
+		run(next)
 	}
 
 	const accept = () => {
-		recordConsent(asking).catch(() => {})
-		setAsking([])
-		run()
+		if (!asking) return
+
+		recordConsent(needsConsent(settings, asking.specs)).catch(() => {})
+		setAsking(undefined)
+		run(asking)
 	}
 
 	const cancel = () => {
@@ -177,37 +200,51 @@ function InAppSearch({ target }: { target: ImageTarget }) {
 		setState('cancelled')
 	}
 
-	if (!ids.length)
+	if (!ids.length && !copySpec)
 		return (
 			<ActionSheetRow.Group title="Search in app">
 				<ActionSheetRow
 					label="No in-app search turned on"
-					subLabel="Turn on trace.moe or add a SauceNAO key in plugin settings."
+					subLabel="Turn on trace.moe, or add a key in plugin settings."
 				/>
 			</ActionSheetRow.Group>
 		)
 
 	return (
 		<Stack spacing={8}>
-			{asking.length > 0 ? (
+			{asking ? (
 				<Consent
-					ids={asking}
+					ids={needsConsent(settings, asking.specs)}
 					onAccept={accept}
-					onCancel={() => setAsking([])}
+					onCancel={() => setAsking(undefined)}
 				/>
 			) : (
 				<ActionSheetRow.Group title="Search in app">
-					{busy ? (
+					{busy && (
 						<ActionSheetRow
 							label="Cancel search"
 							subLabel={StateMessages[state]}
 							onPress={cancel}
 						/>
-					) : (
+					)}
+					{!busy && ids.length > 0 && (
 						<ActionSheetRow
 							label={`Search with ${joinNames(ids)}`}
 							subLabel={`Sends this image to ${joinNames(ids)}.`}
-							onPress={start}
+							onPress={() => start({ specs: providers, mode: 'search' })}
+						/>
+					)}
+					{!busy && copySpec && (
+						<ActionSheetRow
+							label="Check copies with Google Vision"
+							subLabel="Sends this image to Google Vision only."
+							onPress={() => start({ specs: [copySpec], mode: 'copies' })}
+						/>
+					)}
+					{!busy && !copySpec && (
+						<ActionSheetRow
+							label="Check copies"
+							subLabel="Add a Google Vision key in plugin settings, or use TinEye or Google Lens below."
 						/>
 					)}
 				</ActionSheetRow.Group>
@@ -219,11 +256,15 @@ function InAppSearch({ target }: { target: ImageTarget }) {
 			)}
 			{outcome?.kind === 'error' && (
 				<Text variant="text-sm/normal" color="text-muted">
-					{errorMessage(outcome.category, joinNames(ids))}
+					{errorMessage(outcome.category, joinNames(lastIds))}
 				</Text>
 			)}
 			{outcome?.kind === 'providers' && (
-				<Results outcomes={outcome.outcomes} order={ids} />
+				<Results
+					outcomes={outcome.outcomes}
+					order={lastIds}
+					mode={lastRun.mode}
+				/>
 			)}
 		</Stack>
 	)
@@ -261,9 +302,34 @@ function Consent({
 function Results({
 	outcomes,
 	order,
+	mode,
 }: {
 	outcomes: ProviderOutcomes
 	order: ProviderId[]
+	mode: SearchMode
+}) {
+	const vision = outcomes.vision
+	const web = vision?.kind === 'results' ? vision.web : undefined
+
+	if (mode === 'copies')
+		return (
+			<Stack spacing={8}>
+				{web && <CopyFindings web={web} />}
+				<ProviderLines outcomes={outcomes} order={order} />
+			</Stack>
+		)
+
+	return <RankedResults outcomes={outcomes} order={order} web={web} />
+}
+
+function RankedResults({
+	outcomes,
+	order,
+	web,
+}: {
+	outcomes: ProviderOutcomes
+	order: ProviderId[]
+	web: WebFindings | undefined
 }) {
 	const [showWeak, setShowWeak] = useState(false)
 	const fused = fuseResults(outcomes, order)
@@ -277,8 +343,7 @@ function Results({
 		<Stack spacing={8}>
 			{!hasBest && (
 				<Text variant="text-sm/normal" color="text-muted">
-					No confident match. trace.moe only knows anime episodes, and SauceNAO
-					mostly knows art and manga. Try a browser button for photos and memes.
+					{noMatchHint(order)}
 				</Text>
 			)}
 			{hasBest && (
@@ -306,18 +371,92 @@ function Results({
 					/>
 				</ActionSheetRow.Group>
 			)}
-			{order.map(id => {
-				const outcome = outcomes[id]
-				return outcome ? (
-					<Text key={id} variant="text-xs/normal" color="text-muted">
-						{providerStatus(id, outcome)}
-					</Text>
-				) : null
-			})}
+			{web && <ImageNotes web={web} />}
+			<ProviderLines outcomes={outcomes} order={order} />
 			{hidden !== '' && (
 				<Text variant="text-xs/normal" color="text-muted">
 					{hidden}
 				</Text>
+			)}
+		</Stack>
+	)
+}
+
+function ProviderLines({
+	outcomes,
+	order,
+}: {
+	outcomes: ProviderOutcomes
+	order: ProviderId[]
+}) {
+	return order.map(id => {
+		const outcome = outcomes[id]
+		return outcome ? (
+			<Text key={id} variant="text-xs/normal" color="text-muted">
+				{providerStatus(id, outcome)}
+			</Text>
+		) : null
+	})
+}
+
+function ImageNotes({ web }: { web: WebFindings }) {
+	const notes = [
+		web.bestGuess ? `Google thinks this is: ${web.bestGuess}` : '',
+		web.entities.length ? `Related: ${web.entities.join(', ')}` : '',
+		web.text ? `Text in image: ${web.text}` : '',
+	].filter(Boolean)
+
+	return notes.map(note => (
+		<Text key={note} variant="text-sm/normal" color="text-muted">
+			{note}
+		</Text>
+	))
+}
+
+function CopyFindings({ web }: { web: WebFindings }) {
+	const [showPages, setShowPages] = useState(false)
+	const [showLimits, setShowLimits] = useState(false)
+	const detail = copyDetail(web)
+
+	return (
+		<Stack spacing={8}>
+			<Text variant="text-md/semibold">{copyHeadline(web)}</Text>
+			{detail !== '' && (
+				<Text variant="text-sm/normal" color="text-muted">
+					{detail}
+				</Text>
+			)}
+			<ImageNotes web={web} />
+			<ActionSheetRow.Group>
+				{web.pages.length > 0 && (
+					<ActionSheetSwitchRow
+						label="Show pages"
+						value={showPages}
+						onValueChange={setShowPages}
+					/>
+				)}
+				<ActionSheetSwitchRow
+					label="What this means"
+					value={showLimits}
+					onValueChange={setShowLimits}
+				/>
+			</ActionSheetRow.Group>
+			{showLimits && (
+				<Text variant="text-sm/normal" color="text-muted">
+					{CopyLimits}
+				</Text>
+			)}
+			{showPages && (
+				<ActionSheetRow.Group title="Pages using this image">
+					{web.pages.map(page => (
+						<ActionSheetRow
+							key={page.url}
+							label={page.title}
+							subLabel={`${page.exact ? 'Exact copy' : 'Edited copy'} · ${page.site}`}
+							onPress={() => openResult(page.url)}
+						/>
+					))}
+				</ActionSheetRow.Group>
 			)}
 		</Stack>
 	)
@@ -328,7 +467,7 @@ function ResultRow({ result }: { result: ProviderResult }) {
 		<ActionSheetRow
 			label={result.title}
 			subLabel={[
-				`${TierLabels[result.tier]}, ${percent(result.similarity)}`,
+				matchLabel(result),
 				result.tier === 'possible' ? 'likely wrong' : '',
 				ProviderNames[result.provider],
 				result.detail,

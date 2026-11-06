@@ -137,3 +137,21 @@ Run by Sensei on 2026-11-06 from his browser.
 | --- | --- | --- |
 | 24 | TinEye site honours `sort=crawl_date&order=asc` | Passed: results sorted oldest first |
 | 25 | Wayback CDX returns the earliest capture | Passed: `example.com` returned `20020120142510`, which is 20 Jan 2002 |
+
+## P4 device checks
+
+Built as `0.4.0-alpha1`. These have not been run on a device yet.
+
+| Check | Result |
+| --- | --- |
+| Vision key saves, and the setup text shows cost | Not run |
+| Search with Google Vision returns pages | Not run |
+| Exact pages rank above similar images | Not run |
+| Widely used image shows the right band, with "at least" counts | Not run |
+| Fresh photo shows No copies found | Not run |
+| What this means shows the limits | Not run |
+| Show pages lists pages that open | Not run |
+| Image with text shows Text in image | Not run |
+| Bad key shows a clear message | Not run |
+| TinEye row opens sorted by oldest | Not run |
+| Encoding a normal image doesn't visibly freeze the app | Not run |

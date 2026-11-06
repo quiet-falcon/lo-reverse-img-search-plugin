@@ -86,3 +86,75 @@ How the plugin reads it:
 - `long_remaining` is shown as searches left today.
 
 Errors: a non-zero `header.status` or a non-200 response. Messages mentioning a daily limit map to quota, a key to bad key, a rate to rate limited, and an image or file to bad image. HTTP 403 is a bad key, 429 rate limited, 413 too large, and 5xx busy.
+
+## Google Cloud Vision
+
+[S] Taken from the [web detection docs](https://docs.cloud.google.com/vision/docs/detecting-web), the [request docs](https://docs.cloud.google.com/vision/docs/request), and the [API key docs](https://docs.cloud.google.com/docs/authentication/api-keys-use). Not yet confirmed by a live call.
+
+Request:
+
+```text
+POST https://vision.googleapis.com/v1/images:annotate
+Content-Type: application/json
+x-goog-api-key: <key>
+```
+
+```json
+{
+	"requests": [
+		{
+			"image": { "content": "<base64 image>" },
+			"features": [
+				{ "type": "WEB_DETECTION", "maxResults": 50 },
+				{ "type": "TEXT_DETECTION", "maxResults": 1 }
+			]
+		}
+	]
+}
+```
+
+The key goes in the header, because Google warns that a key in a URL can be exposed. `TEXT_DETECTION` is left out when **Read text in images** is off. Images over 7 MiB are refused before upload, because base64 adds a third and a JSON request is capped at 10 MB.
+
+Sanitised response shape:
+
+```json
+{
+	"responses": [
+		{
+			"webDetection": {
+				"webEntities": [{ "entityId": "/m/x", "score": 1.4, "description": "x" }],
+				"fullMatchingImages": [{ "url": "https://x" }],
+				"partialMatchingImages": [{ "url": "https://x" }],
+				"pagesWithMatchingImages": [
+					{
+						"url": "https://x",
+						"pageTitle": "<b>x</b> | x",
+						"fullMatchingImages": [{ "url": "https://x" }]
+					}
+				],
+				"visuallySimilarImages": [{ "url": "https://x" }],
+				"bestGuessLabels": [{ "label": "x", "languageCode": "en" }]
+			},
+			"textAnnotations": [{ "description": "all the text" }]
+		}
+	]
+}
+```
+
+How the plugin reads it:
+
+- A page with `fullMatchingImages` is Exact. Other pages are Strong, and `visuallySimilarImages` are Possible.
+- Image links only appear as results when Google found no page.
+- Copy counts combine the top-level lists with each page's lists. Sites come from page hostnames, without `www.`.
+- Bold tags and common entities are removed from `pageTitle`.
+- `textAnnotations[0].description` holds all the text, and is cut to 200 characters.
+- Any list that reaches 50 entries shows "More may exist".
+
+Errors:
+
+- HTTP 400 mentioning an API key, or 401, is a bad key. Any other 400 is a bad image.
+- HTTP 403 means the API or billing isn't set up.
+- HTTP 413 is too large, 429 is rate limited, and 5xx is busy.
+- An `error` inside `responses[0]` uses gRPC codes: 3 bad image, 7 setup, 8 rate limited, 13 and 14 busy.
+
+[A, gate P4] The error mapping for keys and billing needs a live failure to confirm.

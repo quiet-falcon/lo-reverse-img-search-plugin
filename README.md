@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P4 next](https://img.shields.io/badge/status-P4%20next-blue)](#project-status)
+[![Status: P4 in testing](https://img.shields.io/badge/status-P4%20in%20testing-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -30,7 +30,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
 | **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
-| **P4** | Google Cloud Vision, copy check, and image text | 🔨 In progress |
+| **P4** | Google Cloud Vision, copy check, and image text | 🧪 Built, needs device testing |
 | **P5** | Profile check: account age, avatars, banners, and AI tags | ⬜ Not started |
 | **P6** | Local image hash list | ⬜ Not started |
 | **P7** | Community hash list | ⬜ Not started |
@@ -54,7 +54,7 @@ Each phase must pass before the next begins. Tested versions and evidence are re
 | --- | --- | --- | --- | --- |
 | Anime frame | [trace.moe](https://soruly.github.io/trace.moe-api/) | Title, episode, and timestamp | None | ✅ Working |
 | Art or manga | [SauceNAO](https://saucenao.com/) | Artist and source page | Free API key | ✅ Working |
-| Photo, meme, or screenshot | [Google Cloud Vision](https://cloud.google.com/vision) | Pages using the image | Your own API key | 🔨 P4 |
+| Photo, meme, or screenshot | [Google Cloud Vision](https://cloud.google.com/vision) | Pages using the image | Your own API key | 🧪 Needs device testing |
 
 Provider scores aren't comparable, so results are ranked into **Exact**, **Strong**, and **Possible** tiers instead of being averaged. Each provider's status is always shown.
 
@@ -62,7 +62,7 @@ Provider scores aren't comparable, so results are ranked into **Exact**, **Stron
 
 Google Lens, Yandex, Bing, TinEye, SauceNAO, IQDB, trace.moe, and ImgOps all work on a real device. Each row opens one engine, and TinEye opens sorted by oldest.
 
-### 🧾 Copy check 🔨
+### 🧾 Copy check 🧪
 
 Has this image been used across the web? The copy check helps you spot a profile photo that may be copied, or warn someone that their own photo is being reused.
 
@@ -125,7 +125,7 @@ These rules are built into the project:
 
 | Search path | What leaves your device |
 | --- | --- |
-| In-app provider | Image bytes and your IP address, sent to that provider |
+| In-app provider | Image bytes and your IP address, sent to that provider. Google Vision also gets your key |
 | Browser hand-off | The image link, including channel ID, attachment ID, filename, and a temporary signature |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
 | Result thumbnails | Your IP address, sent to the host serving each thumbnail |
