@@ -37,7 +37,7 @@ import type {
 	SearchOutcome,
 } from '../core/types'
 
-const DownloadHosts = [
+export const DownloadHosts = [
 	'cdn.discordapp.com',
 	'media.discordapp.net',
 	'images-ext-1.discordapp.net',
@@ -165,7 +165,7 @@ function providerCall(spec: ProviderSpec, image: Image) {
 	}
 }
 
-async function freshTarget(
+export async function freshTarget(
 	target: ImageTarget,
 	update: (state: SearchState) => void,
 ): Promise<ImageTarget | undefined> {
@@ -225,7 +225,7 @@ async function download(
 	return category
 }
 
-function errorFor(category: string): ErrorCategory {
+export function errorFor(category: string): ErrorCategory {
 	if (category === 'timeout') return 'timeout'
 	if (category === 'too-large') return 'too-large'
 	if (category === 'network') return 'network'

@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.4.0-alpha1",
+	"version": "0.5.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -284,6 +284,11 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `fusion.ts`: Tiering, dedupe, and ranking.
 - `copy-check.ts`: Counts sites and sets the copy band from Vision's lists.
 - `base64.ts`: Encodes image bytes for Vision.
+- `features.ts`: Switches for parked features.
+- `account-age.ts`: Reads an account's creation date from its ID.
+- `profile.ts`: Reads a message author, then builds avatar and banner targets and signals.
+- `signals.ts`: Signal type and wording.
+- `image-tags.ts`: Finds AI tags in PNG, JPEG, and WebP metadata. It returns fixed labels only and never parses EXIF.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
 - `acquire.ts`: Lists the download URLs to try, in order.
@@ -321,6 +326,8 @@ Providers build plain request data and parse plain text. Only `adapters/http.ts`
 - `message-sheet.tsx`: Adds the long-press row.
 - `media-viewer.tsx`: Adds the viewer button.
 - `external.ts`: Lists hand-offs and opens them. Keeps provider URLs out of the UI.
+- `profile.ts`: Reads the author from Discord's stores, with every store guarded.
+- `image-check.ts`: Downloads an original file from Discord and reads its tags.
 - `icons.ts`: Finds the search icon, with a fallback. [S] `lookupGeneratedIconComponent` treats extra arguments as one icon's asset names, so each fallback name needs its own call.
 
 ### Search states
@@ -531,6 +538,8 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 | --- | --- |
 | In-app provider | Image bytes and your IP address go to that provider |
 | Browser hand-off | The image URL goes to that provider, including channel ID, attachment ID, filename, and a temporary access signature |
+| Avatar or banner hand-off | The image URL goes to that provider, including the user's ID |
+| AI tag check | The file downloads from Discord only, and nothing goes to outside services |
 | URL refresh | The attachment URL goes to Discord, as normal client traffic |
 | Result thumbnails | Your IP address goes to the host serving each thumbnail |
 
@@ -801,15 +810,15 @@ Reports signals about an image and an account. Signals sit in their own strip, s
 
 Work:
 
-- `core/signals.ts`, plus `ui/SignalStrip.tsx` with one labelled, icon-led row per signal.
-- A **Check Profile** row in the long-press message sheet, using the message author. A profile sheet entry can follow once a probe finds it.
-- Account age in `core/account-age.ts`: `Math.floor(Number(id) / 4194304) + 1420070400000`. [S] [Discord docs](https://docs.discord.com/developers/reference). Dividing keeps this accurate without BigInt.
-- Avatar and banner targets in `core/profile.ts` and `adapters/profile.ts`, using `.png?size=1024` on Discord's CDN. Skip default avatars and webhooks.
+- `core/signals.ts`, plus `ui/SignalStrip.tsx` with one labelled, icon-led row per signal. **Built.**
+- A **Check Profile** row in the long-press message sheet, using the message author. **Built.** A profile sheet entry can follow once a probe finds it.
+- Account age in `core/account-age.ts`: `Math.floor(Number(id) / 4194304) + 1420070400000`. [S] [Discord docs](https://docs.discord.com/developers/reference). Dividing keeps this accurate without BigInt. **Built.**
+- Avatar and banner targets in `core/profile.ts` and `adapters/profile.ts`, using `.png?size=1024` on Discord's CDN. Skip default avatars and webhooks. **Built.**
 - Those targets open the normal search sheet, so hand-offs and in-app providers all work on them.
-- Show the account's creation date, so it can be compared by hand with TinEye's oldest copy.
+- Show the account's creation date, so it can be compared by hand with TinEye's oldest copy. **Built.**
 - AI check, in two layers:
-  - Local tags in `core/image-tags.ts`: C2PA, IPTC AI labels, and generator settings such as Stable Diffusion `parameters`. It reads the original file from Discord, and nothing goes to an outside service. [A, gate 26] Test what survives Discord's upload.
-  - A SynthID browser row. A hit is strong, and a miss means nothing. [C] Its public checker is [reported at synthid.com](https://bestforandroid.com/radar/synthid-detector-went-public-check-photo-video-ai-watermarks/), with no public image API, so it is a manual upload.
+  - Local tags in `core/image-tags.ts`: C2PA, IPTC AI labels, and generator settings such as Stable Diffusion `parameters`. It reads the original file from Discord, and nothing goes to an outside service. **Built.** Device run: PNG text survived, and JPEG XMP did not.
+  - A SynthID browser row. A hit is strong, and a miss means nothing. [C] Its public checker is [reported at synthid.com](https://bestforandroid.com/radar/synthid-detector-went-public-check-photo-video-ai-watermarks/), with no public image API, so it is a manual upload. **Built.**
 - Never read or show GPS or location fields. The tag scan skips EXIF entirely.
 
 Sightengine was scrapped on 2026-11-06, so there is no AI score provider. New AI detection needs Sensei's approval.
@@ -822,6 +831,8 @@ Acceptance:
 - Avatar and banner hand-offs work on a real profile.
 - A PNG with Stable Diffusion text shows its tag, if the tag survives upload.
 - Every signal has a text label and an icon.
+
+**P5 passed on 2026-11-06** with alpha1, apart from the webhook check, which was not run. See `docs/compatibility.md`.
 
 ### P6: Local hash list
 
@@ -967,11 +978,11 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | Passed, 2026-11-06 | Write a temp file and use `FormData` with its URI, as PetPet does |
 | 24 | Does TinEye's site honour `sort=crawl_date&order=asc`? | Passed, 2026-11-06 | Keep the plain link |
 | 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
-| 26 | Which metadata survives Discord's upload? | P5 | Drop local tag checks |
-| 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | P5 | Use `getAvatarURL`, and leave banners out |
+| 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived, JPEG XMP did not, one upload each | Drop local tag checks |
 | 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | P6 | Vendor the decoder |
 | 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
 | 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
+| 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
 
 Limitations already known:
 

@@ -1,6 +1,7 @@
 import type { SearchState } from './session'
 import type {
 	ErrorCategory,
+	ImageTarget,
 	ProviderId,
 	ProviderOutcome,
 	ProviderResult,
@@ -54,6 +55,12 @@ export function errorMessage(category: ErrorCategory, provider: string) {
 		default:
 			return 'Something went wrong. Try again, or use a browser button.'
 	}
+}
+
+export function handoffNotice(target: ImageTarget) {
+	return target.kind === 'avatar' || target.kind === 'banner'
+		? "Opens in your browser. The engine you pick gets this image's link, which includes this user's ID."
+		: "Opens in your browser. The engine you pick gets this image's link, which can include its channel ID, attachment ID, filename, and a temporary signature."
 }
 
 export const StateMessages: Partial<Record<SearchState, string>> = {

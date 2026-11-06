@@ -77,6 +77,9 @@ const { searchImage } = await import(
 const { createSearchSession } = await import(
 	'../plugins/reverse-image-search/js/core/session'
 )
+const { checkImageTags } = await import(
+	'../plugins/reverse-image-search/js/adapters/image-check'
+)
 
 const Fresh =
 	'https://cdn.discordapp.com/attachments/1/2/a.png?ex=ffffffff&is=00000000&hm=deadbeef&'
@@ -462,5 +465,72 @@ describe('searchImage', () => {
 
 		expect(FakeXhr.instances).toHaveLength(0)
 		expect(outcomes).toEqual([])
+	})
+})
+
+describe('checkImageTags', () => {
+	const ProxyLink =
+		'https://media.discordapp.net/attachments/1/2/a.png?ex=ffffffff&is=00000000&hm=deadbeef&'
+	const text = (value: string) =>
+		Uint8Array.from(value, char => char.charCodeAt(0))
+	const Xmp = new Uint8Array([
+		0xff,
+		0xd8,
+		0xff,
+		0xfe,
+		0,
+		18,
+		...text('made in ComfyUI!'),
+		0xff,
+		0xda,
+	])
+
+	test('reads the original file from Discord and sends it nowhere', async () => {
+		FakeXhr.respond = xhr => xhr.succeed(200, Xmp.buffer)
+		const outcome = await checkImageTags(
+			createSearchSession(),
+			target(ProxyLink),
+		)
+
+		expect(FakeXhr.instances).toHaveLength(1)
+		expect(FakeXhr.instances[0]!.method).toBe('GET')
+		expect(FakeXhr.instances[0]!.url).toBe(
+			'https://cdn.discordapp.com/attachments/1/2/a.png?ex=ffffffff&is=00000000&hm=deadbeef&',
+		)
+		expect(outcome).toEqual({
+			kind: 'tags',
+			tags: [{ kind: 'generator', label: 'Made with ComfyUI' }],
+		})
+	})
+
+	test('refreshes a stale link first', async () => {
+		refreshResult = Fresh
+		FakeXhr.respond = xhr => xhr.succeed(200, Xmp.buffer)
+		await checkImageTags(createSearchSession(), target(Stale))
+
+		expect(refreshed).toEqual([Stale])
+		expect(FakeXhr.instances[0]!.url).toBe(Fresh)
+	})
+
+	test('reports a failed refresh and download', async () => {
+		expect(await checkImageTags(createSearchSession(), target(Stale))).toEqual({
+			kind: 'error',
+			category: 'refresh-failed',
+		})
+
+		FakeXhr.respond = xhr => xhr.succeed(404, new ArrayBuffer(0))
+		expect(await checkImageTags(createSearchSession(), target())).toEqual({
+			kind: 'error',
+			category: 'unexpected',
+		})
+	})
+
+	test('cancel drops a late result', async () => {
+		const session = createSearchSession()
+		const pending = checkImageTags(session, target())
+		await Promise.resolve()
+		session.cancel()
+
+		expect(await pending).toBeUndefined()
 	})
 })

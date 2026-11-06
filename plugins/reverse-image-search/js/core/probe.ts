@@ -15,6 +15,8 @@ export type ProbeGroup =
 	| 'viewerProps'
 	| 'viewerSource'
 	| 'viewerTree'
+	| 'messageAuthor'
+	| 'userRecord'
 
 export interface ProbeState {
 	entryPoints: Record<string, string>

@@ -1,4 +1,9 @@
-import { isDiscordMedia, isHttps, toMediaProxy } from './signed-url'
+import {
+	isAttachmentUrl,
+	isDiscordMedia,
+	isHttps,
+	toMediaProxy,
+} from './signed-url'
 import type { ImageTarget } from './types'
 
 type Unknowns = Record<string, unknown>
@@ -152,6 +157,9 @@ function linkPair(target: ImageTarget, prefersOriginal: boolean) {
 		? ([target.url, proxy] as const)
 		: ([proxy, target.url] as const)
 }
+
+export const hasOriginalFile = (target: ImageTarget) =>
+	isAttachmentUrl(target.url)
 
 export function previewUrl(target: ImageTarget) {
 	return target.proxyUrl ?? target.url

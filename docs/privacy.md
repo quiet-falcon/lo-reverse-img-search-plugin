@@ -16,9 +16,19 @@ Before upload, the plugin may ask Discord to renew an expired image link. That g
 
 The engine you pick gets the image link, which can include the channel ID, attachment ID, filename, and a temporary signature.
 
+An avatar or banner link includes that user's ID.
+
+## Profile and AI checks
+
+**Check Profile** reads the message author from Discord's own data on your phone. Account age comes from the user ID, so it needs no network call.
+
+**Check AI tags** downloads the original file from Discord and reads its tags on your phone. Nothing goes to an outside service. It shows fixed labels only, and it skips EXIF, so GPS and location fields are never read.
+
+**Open SynthID checker** opens Google's site in your browser. The plugin sends it nothing, and you choose whether to upload the image.
+
 ## Device probe
 
-Dev builds keep version numbers, sheet keys, and field names in memory. They never read field values, and the report clears on reload.
+Dev builds keep version numbers, sheet keys, and field names in memory, including the field names of user records. They never read field values, and the report clears on reload.
 
 ## API keys
 
@@ -34,7 +44,6 @@ These hosts are for later phases and aren't contacted yet. This list is updated 
 
 | Phase | Host | What it receives |
 | --- | --- | --- |
-| P5 | `cdn.discordapp.com` | Avatar, banner, and original file requests, plus your IP address |
 | P7 | `quiet-falcon.github.io` | A request for the community list, plus your IP address |
 | P8 | RDAP services | Domains found in a message, plus your IP address |
 

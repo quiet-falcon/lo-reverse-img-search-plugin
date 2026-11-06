@@ -1,4 +1,9 @@
-export type ImageTargetKind = 'attachment' | 'embed' | 'viewer'
+export type ImageTargetKind =
+	| 'attachment'
+	| 'embed'
+	| 'viewer'
+	| 'avatar'
+	| 'banner'
 
 export interface ImageTarget {
 	kind: ImageTargetKind

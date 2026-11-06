@@ -4,7 +4,7 @@ import { patchMessageSheet } from './adapters/message-sheet'
 import { startProbe } from './adapters/probe'
 import { probeState } from './adapters/session'
 import { bindSettings } from './adapters/settings-store'
-import { recordNames } from './core/probe'
+import { recordFields, recordNames } from './core/probe'
 import { DefaultSettings } from './core/settings'
 import { closeSearchSheet } from './ui/SearchSheet'
 import Settings from './ui/Settings'
@@ -23,10 +23,18 @@ export default plugin<{ jsonStorage: SettingsData }>({
 				}
 			: undefined
 
+		// Dev builds report which fields hold avatars and banners
+		const onRecords = __DEV__
+			? (author: unknown, user: unknown) => {
+					recordFields(probeState, 'messageAuthor', author)
+					recordFields(probeState, 'userRecord', user)
+				}
+			: undefined
+
 		cleanup(
 			bindSettings(jsonStorage),
 			watchDiscordModules(),
-			patchMessageSheet(onError),
+			patchMessageSheet(onError, onRecords),
 			patchMediaViewer(onError, onViewerStatus),
 			closeSearchSheet,
 		)

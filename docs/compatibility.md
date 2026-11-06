@@ -162,3 +162,27 @@ Run these when Vision returns:
 | Image with text shows Text in image | Not run |
 | Bad key shows a clear message | Not run |
 | Encoding a normal image doesn't visibly freeze the app | Not run |
+
+## P5 device checks
+
+Tested with `0.5.0-alpha1` (commit `2e6ad72`) on 2026-11-06, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `05835155b61f974e58c5fa568c283790640be56b769bd2fca85972af149542fb`, with no probe errors. Sensei reported every check below as done, except the webhook check.
+
+| Check | Result |
+| --- | --- |
+| Check Profile row and account age | Passed |
+| Avatar opens in TinEye, sorted oldest first | Passed |
+| Banner for a user who has one | Passed |
+| Webhook message shows no Check Profile row | Not run. `webhookId` is on the message record, and automated tests cover the skip |
+| SD tag PNG after upload | Passed: tag survived |
+| AI label JPEG after upload | Tag did not survive: No AI tags found |
+| Tagless PNG | Passed: No AI tags found |
+| SynthID row opens the checker | Passed |
+| Signal icons | Passed: warning and profile icons seen |
+| No Vision option in settings | Awaiting Sensei's confirmation |
+
+Gates closed by this run:
+
+| # | Question | Status |
+| --- | --- | --- |
+| 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived and JPEG XMP did not, on one upload each |
+| 30 | Author and user record fields | Passed: both hold `avatar`, `banner`, `globalName`, `bot`, and `discriminator` |

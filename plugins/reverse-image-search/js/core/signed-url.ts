@@ -26,6 +26,13 @@ export function isStale(url: string, now = Date.now()) {
 export const toMediaProxy = (url: string) =>
 	url.replace(CdnAttachmentRe, 'https://media.discordapp.net/')
 
+const MediaAttachmentRe =
+	/^https:\/\/media\.discordapp\.net\/(?=(?:ephemeral-)?attachments\/)/i
+
+// The CDN serves the uploaded file, while the proxy may rework it
+export const toOriginal = (url: string) =>
+	url.replace(MediaAttachmentRe, 'https://cdn.discordapp.com/')
+
 export const encodeForHandoff = (url: string) => encodeURIComponent(url)
 
 const ParamKeyRe = /[?&]([^=&#]+)=/g

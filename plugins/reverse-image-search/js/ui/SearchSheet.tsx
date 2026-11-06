@@ -14,6 +14,7 @@ import { fuseResults } from '../core/fusion'
 import {
 	ConsentNotices,
 	errorMessage,
+	handoffNotice,
 	hiddenSummary,
 	joinNames,
 	matchLabel,
@@ -30,8 +31,11 @@ import {
 	needsConsent,
 } from '../core/settings'
 import { previewUrl } from '../core/target'
+import { AiCheck } from './AiCheck'
+import { SignalStrip } from './SignalStrip'
 import type { SearchState } from '../core/session'
 import type { ProviderSpec } from '../core/settings'
+import type { Signal } from '../core/signals'
 import type {
 	ImageTarget,
 	ProviderId,
@@ -54,15 +58,21 @@ interface SearchRun {
 	mode: SearchMode
 }
 
-interface SearchSheetProps {
-	targets: ImageTarget[]
+interface SheetHeader {
+	title?: string
+	signals: Signal[]
 }
 
-export function openSearchSheet(targets: ImageTarget[]) {
+interface SearchSheetProps {
+	targets: ImageTarget[]
+	header?: SheetHeader
+}
+
+export function openSearchSheet(targets: ImageTarget[], header?: SheetHeader) {
 	ActionSheetActionCreators.openLazy(
 		Promise.resolve({ default: SearchSheet }),
 		SheetKey,
-		{ targets },
+		{ targets, header },
 	)
 }
 
@@ -74,27 +84,31 @@ export function closeSearchSheet() {
 	}
 }
 
-function SearchSheet({ targets }: SearchSheetProps) {
+function SearchSheet({ targets, header }: SearchSheetProps) {
 	const [target, setTarget] = useState(
 		targets.length === 1 ? targets[0] : undefined,
 	)
 
 	return (
 		<ActionSheet>
-			{target ? (
-				<Handoffs target={target} />
-			) : (
-				<ActionSheetRow.Group title="Choose an image">
-					{targets.map(item => (
-						<ActionSheetRow
-							key={item.url}
-							label={item.label}
-							subLabel={item.spoiler ? 'Spoiler' : undefined}
-							onPress={() => setTarget(item)}
-						/>
-					))}
-				</ActionSheetRow.Group>
-			)}
+			<Stack spacing={16}>
+				{header && (
+					<SignalStrip title={header.title} signals={header.signals} />
+				)}
+				{target && <Handoffs target={target} />}
+				{!target && targets.length > 0 && (
+					<ActionSheetRow.Group title="Choose an image">
+						{targets.map(item => (
+							<ActionSheetRow
+								key={item.url}
+								label={item.label}
+								subLabel={item.spoiler ? 'Spoiler' : undefined}
+								onPress={() => setTarget(item)}
+							/>
+						))}
+					</ActionSheetRow.Group>
+				)}
+			</Stack>
 		</ActionSheet>
 	)
 }
@@ -131,10 +145,9 @@ function Handoffs({ target }: { target: ImageTarget }) {
 				</ActionSheetRow.Group>
 			)}
 			<InAppSearch target={target} />
+			<AiCheck target={target} />
 			<Text variant="text-sm/normal" color="text-muted">
-				Opens in your browser. The engine you pick gets this image's link, which
-				can include its channel ID, attachment ID, filename, and a temporary
-				signature.
+				{handoffNotice(target)}
 			</Text>
 			<ActionSheetRow.Group title="Open in browser">
 				{handoffChoices.map(({ id, name, note }) => (
