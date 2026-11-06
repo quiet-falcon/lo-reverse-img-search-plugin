@@ -162,3 +162,20 @@ Run these when Vision returns:
 | Image with text shows Text in image | Not run |
 | Bad key shows a clear message | Not run |
 | Encoding a normal image doesn't visibly freeze the app | Not run |
+
+## P5 device checks
+
+Built as `0.5.0-alpha1`. These have not been run on a device yet.
+
+| Check | Result |
+| --- | --- |
+| Check Profile row shows on messages, with no duplicates | Not run |
+| Account age and creation date show | Not run |
+| Avatar opens in TinEye | Not run |
+| Banner appears for a user who has one | Not run |
+| Webhook message shows no Check Profile row | Not run |
+| SD tag PNG shows its tag after upload | Not run |
+| AI label JPEG shows its tag after upload | Not run |
+| Tagless PNG shows No AI tags found | Not run |
+| SynthID row opens the checker | Not run |
+| Signal icons show | Not run |

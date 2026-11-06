@@ -10,6 +10,7 @@ const Row = Object.assign(() => null, { Group: () => null, Icon: () => null })
 const hooks: { hook: Hook; removed: boolean }[] = []
 const subscriptions: { active: boolean }[] = []
 const opened: unknown[] = []
+let storedUser: unknown
 let onMessageSheet: (mod: unknown) => void
 let onViewerHeader: (exports: Record<string, unknown>) => void
 
@@ -33,6 +34,16 @@ mock.module('@valenced/patcher', () => ({
 }))
 mock.module('@valenced/discord/actions', () => ({
 	ActionSheetActionCreators: { hideActionSheet() {} },
+}))
+mock.module('@valenced/discord/flux', () => ({
+	Stores: {
+		UserStore: {
+			getUser: () => {
+				if (storedUser === 'throw') throw new Error('boom')
+				return storedUser
+			},
+		},
+	},
 }))
 mock.module('@valenced/discord/design', () => ({
 	Design: { ActionSheet: Sheet, ActionSheetRow: Row },
@@ -98,6 +109,7 @@ beforeEach(() => {
 	subscriptions.length = 0
 	opened.length = 0
 	lookups.length = 0
+	storedUser = undefined
 })
 
 describe('patchMessageSheet', () => {
@@ -109,7 +121,31 @@ describe('patchMessageSheet', () => {
 		expect(tree.props.children).toHaveLength(2)
 	})
 
-	test('adds nothing for a message without an image', () => {
+	test('adds a group for any message with an author', () => {
+		const tree = sheetTree()
+
+		runMessageSheet(
+			{ message: { attachments: [], authorId: '175928847299117063' } },
+			tree,
+		)
+
+		expect(tree.props.children).toHaveLength(2)
+	})
+
+	test('still adds the row when the user store throws', () => {
+		const tree = sheetTree()
+		storedUser = 'throw'
+
+		const { errors } = runMessageSheet(
+			{ message: { author: { id: '175928847299117063', avatar: 'bad' } } },
+			tree,
+		)
+
+		expect(errors).toEqual([])
+		expect(tree.props.children).toHaveLength(2)
+	})
+
+	test('adds nothing for a message without an image or author', () => {
 		const tree = sheetTree()
 
 		runMessageSheet({ message: { attachments: [] } }, tree)

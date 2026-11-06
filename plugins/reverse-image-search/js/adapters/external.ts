@@ -40,9 +40,11 @@ export async function openResult(url: string) {
 	return true
 }
 
+const SynthIdPage = 'https://synthid.com/'
 const PrivacyPage =
 	'https://github.com/quiet-falcon/lo-reverse-img-search-plugin/blob/main/docs/privacy.md'
 
 export const openKeyPage = () => Linking.openURL(SauceNaoKeyPage)
 export const openVisionKeyPage = () => Linking.openURL(VisionKeyPage)
 export const openPrivacyPage = () => Linking.openURL(PrivacyPage)
+export const openSynthId = () => Linking.openURL(SynthIdPage)
