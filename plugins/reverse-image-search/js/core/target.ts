@@ -42,6 +42,7 @@ function fromAttachment(value: unknown, index: number) {
 		spoiler: filename.startsWith(SpoilerPrefix) || value.spoiler === true,
 	}
 	if (isHttps(value.proxy_url)) target.proxyUrl = value.proxy_url
+	addSize(target, value.width, value.height)
 
 	return target
 }
@@ -60,8 +61,18 @@ function fromEmbed(value: unknown, index: number) {
 		spoiler: false,
 	}
 	if (isHttps(media.proxyURL)) target.proxyUrl = media.proxyURL
+	addSize(target, media.width, media.height)
 
 	return target
+}
+
+function addSize(target: ImageTarget, width: unknown, height: unknown) {
+	const w = Number(width)
+	const h = Number(height)
+	if (w > 0 && h > 0) {
+		target.width = w
+		target.height = h
+	}
 }
 
 function labelFor(filename: string, fallback: string) {
@@ -108,6 +119,7 @@ export function targetFromViewer(source: unknown) {
 	}
 	const proxyUrl = urls.find(isProxy)
 	if (proxyUrl) target.proxyUrl = proxyUrl
+	addSize(target, source.width, source.height)
 
 	return target
 }

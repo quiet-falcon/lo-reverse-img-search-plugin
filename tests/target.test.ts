@@ -30,6 +30,8 @@ describe('targetsFromMessage', () => {
 				url: Cdn,
 				proxyUrl: Media,
 				spoiler: false,
+				width: 10,
+				height: 10,
 			},
 		])
 	})

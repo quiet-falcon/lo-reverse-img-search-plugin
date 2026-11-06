@@ -3,11 +3,21 @@ import {
 	ToastActionCreators,
 } from '@valenced/discord/actions'
 import { Design } from '@valenced/discord/design'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Image, View } from 'react-native'
-import { handoffChoices, openHandoff } from '../adapters/external'
+import { handoffChoices, openHandoff, openResult } from '../adapters/external'
+import { searchTraceMoe } from '../adapters/search'
+import {
+	ErrorMessages,
+	percent,
+	StateMessages,
+	TierLabels,
+	visibleResults,
+} from '../core/messages'
+import { createSearchSession } from '../core/session'
 import { previewUrl } from '../core/target'
-import type { ImageTarget } from '../core/types'
+import type { SearchState } from '../core/session'
+import type { ImageTarget, ProviderOutcome } from '../core/types'
 
 const { ActionSheet, ActionSheetRow, ActionSheetSwitchRow, Stack, Text } =
 	Design
@@ -91,6 +101,7 @@ function Handoffs({ target }: { target: ImageTarget }) {
 					/>
 				</ActionSheetRow.Group>
 			)}
+			<TraceMoeSearch target={target} />
 			<Text variant="text-sm/normal" color="text-muted">
 				Opens in your browser. The engine you pick gets this image's link, which
 				can include its channel ID, attachment ID, filename, and a temporary
@@ -109,6 +120,103 @@ function Handoffs({ target }: { target: ImageTarget }) {
 					onValueChange={setSwap}
 				/>
 			</ActionSheetRow.Group>
+		</Stack>
+	)
+}
+
+function TraceMoeSearch({ target }: { target: ImageTarget }) {
+	const session = useRef(createSearchSession()).current
+	const [state, setState] = useState<SearchState>('idle')
+	const [outcome, setOutcome] = useState<ProviderOutcome>()
+
+	// Closing the sheet or stopping the plugin cancels the search
+	useEffect(() => () => session.cancel(), [session])
+
+	const busy = session.isActive() && state !== 'done' && state !== 'failed'
+
+	const start = () => {
+		setOutcome(undefined)
+		searchTraceMoe(session, target, {
+			onState: setState,
+			onOutcome: setOutcome,
+		})
+	}
+
+	const cancel = () => {
+		session.cancel()
+		setState('cancelled')
+	}
+
+	return (
+		<Stack spacing={8}>
+			<ActionSheetRow.Group title="Search in app">
+				{busy ? (
+					<ActionSheetRow
+						label="Cancel search"
+						subLabel={StateMessages[state]}
+						onPress={cancel}
+					/>
+				) : (
+					<ActionSheetRow
+						label="Search with trace.moe"
+						subLabel="For anime screenshots. Sends the image to trace.moe, which logs your IP address."
+						onPress={start}
+					/>
+				)}
+			</ActionSheetRow.Group>
+			{state === 'cancelled' && (
+				<Text variant="text-sm/normal" color="text-muted">
+					Search cancelled.
+				</Text>
+			)}
+			{outcome && <Outcome outcome={outcome} />}
+		</Stack>
+	)
+}
+
+function Outcome({ outcome }: { outcome: ProviderOutcome }) {
+	if (outcome.kind === 'error')
+		return (
+			<Text variant="text-sm/normal" color="text-muted">
+				{ErrorMessages[outcome.category]}
+			</Text>
+		)
+
+	const { shown, hidden } = visibleResults(outcome.results)
+	const quota =
+		outcome.quotaLeft === undefined
+			? ''
+			: ` ${outcome.quotaLeft} free searches left today.`
+
+	return (
+		<Stack spacing={8}>
+			{shown.length ? (
+				<ActionSheetRow.Group title="trace.moe results">
+					{shown.map((result, index) => (
+						<ActionSheetRow
+							key={`${result.url ?? result.title}-${index}`}
+							label={result.title}
+							subLabel={[
+								`${TierLabels[result.tier]}, ${percent(result.similarity)}`,
+								result.detail,
+							]
+								.filter(Boolean)
+								.join(' · ')}
+							onPress={result.url ? () => openResult(result.url!) : undefined}
+						/>
+					))}
+				</ActionSheetRow.Group>
+			) : (
+				<Text variant="text-sm/normal" color="text-muted">
+					No confident match. trace.moe only knows anime, so try a browser
+					button for other images.
+				</Text>
+			)}
+			<Text variant="text-xs/normal" color="text-muted">
+				{hidden
+					? `${hidden} weaker or adult results hidden.${quota}`
+					: quota.trim()}
+			</Text>
 		</Stack>
 	)
 }

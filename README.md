@@ -14,7 +14,7 @@
 </div>
 
 > [!IMPORTANT]
-> This plugin is in early development. The current build adds a **Search Image** row, a viewer button, and browser hand-offs to 8 engines. In-app results aren't built yet, and there is no public release so far.
+> This plugin is in early development. The current build adds a **Search Image** row, a viewer button, and browser hand-offs to 8 engines. In-app anime results from trace.moe are being tested, and there is no public release so far.
 
 ## Why it exists
 
@@ -28,7 +28,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | --- | --- | --- |
 | **P0** | Foundation, build pipeline, and device probe | ✅ Passed |
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
-| **P2** | Secure image pipeline and trace.moe results | ⬜ Not started |
+| **P2** | Secure image pipeline and trace.moe results | 🔶 Built, device test pending |
 | **P3** | SauceNAO results and ranked merging | ⬜ Not started |
 | **P4** | Google Cloud Vision and the copy check | ⬜ Not started |
 | **P5** | Polish, full device testing, and `1.0.0` | ⬜ Not started |

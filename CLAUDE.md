@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.1.0-alpha5",
+	"version": "0.2.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -217,7 +217,7 @@ P0 run on 2026-11-06:
 
 | Step | Result |
 | --- | --- |
-| `bun run verify` | **Passed:** lint, type-check, 73 tests, build |
+| `bun run verify` | **Passed:** lint, type-check, 111 tests, build |
 | Pinned install and `--frozen-lockfile` | **Passed** on GitHub Actions against real GitHub, and `bun.lock` did not change |
 | Gradle packaging | **Passed** on GitHub Actions for production and probe ZIPs, with no token |
 | Hand-built probe ZIP | **Passed** `generate-index`, with `manifest.json` and `index.js` at its root |
@@ -289,6 +289,8 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `copy-check.ts`: Counts sites and sets the copy band from Vision's lists.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
+- `acquire.ts`: Lists the download URLs to try, in order.
+- `messages.ts`: User-facing state, error, and tier text.
 
 ### Provider interface
 
@@ -317,7 +319,8 @@ Providers build plain request data and parse plain text. Only `adapters/http.ts`
 - `session.ts`: Holds the probe's in-memory state.
 - `discord-modules.ts`: Finds `HTTP` and `Endpoints`, and exposes attachment URL refresh.
 - `http.ts`: The only network path for downloads and provider calls.
-- `cache-file.ts`: Temporary file writes and cleanup through `FileModule`.
+- `cache-file.ts`: Temporary file writes and cleanup through `FileModule`. Only needed if a later provider requires multipart upload.
+- `search.ts`: Runs one in-app search: refresh, bounded download, sniff, upload, parse.
 - `message-sheet.tsx`: Adds the long-press row.
 - `media-viewer.tsx`: Adds the viewer button.
 - `external.ts`: Lists hand-offs and opens them. Keeps provider URLs out of the UI.
@@ -361,7 +364,7 @@ Show a picker when a message has more than one image. Spoilered images stay blur
 
 | Provider | Default | Key | Best for | Request | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| trace.moe | On | None | Anime screenshots | `POST https://api.trace.moe/search?anilistInfo&cutBorders`, multipart field `image` | [S] [Docs](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/docs.md), [limits](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/limits.md) |
+| trace.moe | On | None | Anime screenshots | `POST https://api.trace.moe/search?anilistInfo&cutBorders`, raw image bytes with the sniffed `Content-Type` | [S] [Docs](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/docs.md), [limits](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/limits.md) |
 | SauceNAO | On when a key exists | Free | Art, manga, booru | `POST https://saucenao.com/search.php`, query `output_type=2`, `api_key`, `db=999`, `numres=8`, `hide`, multipart field `file` | [C] [PicImageSearch](https://github.com/kitUIN/PicImageSearch/blob/784713e546273a09aae4b247a8b6f798825efafa/PicImageSearch/engines/saucenao.py) |
 | Cloud Vision Web Detection | Off | Your own Google Cloud key | Photos, memes, screenshots, products | `POST https://vision.googleapis.com/v1/images:annotate`, feature `WEB_DETECTION`, base64 image | Fields [S], [pricing](https://cloud.google.com/vision/docs/pricing?hl=es) [S], [size limits](https://docs.cloud.google.com/vision/docs/supported-files) [S], REST shape [A, gate P4] |
 
@@ -371,6 +374,7 @@ Provider facts:
 - [S] trace.moe returns HTTP 402 for quota or concurrency limits, 429 for rate limits, 413 for size, and 503 when its queue is full.
 - [S] trace.moe says similarity below 90% is most likely wrong.
 - [S] trace.moe's docs say mobile apps should send requests directly from clients.
+- [S] trace.moe accepts a raw `image/*` request body, so it needs no temporary file or multipart form.
 - [C] SauceNAO reports `short_remaining`, `long_remaining`, and `minimum_similarity` in its response header. Show those live values. Do not hard-code limits.
 - [C] Secondary sources report 150 searches a day and 4 per 30 seconds for free keys. [A, gate P3] Confirm this from a live response.
 - [A, gate P3] Whether SauceNAO JSON works without a key. Until proven, API mode requires a key and hand-off still works.
@@ -741,9 +745,9 @@ This phase is the first useful release candidate.
 
 Work:
 
-- URL refresh, bounded download, sniffing, and temp files.
-- Session state machine.
-- trace.moe provider and basic results sheet.
+- URL refresh, bounded download, and sniffing. **Done, device test pending.** trace.moe takes raw bytes, so no temp file is written.
+- Session state machine. **Done.**
+- trace.moe provider and basic results sheet. **Done, device test pending.**
 
 Acceptance:
 
@@ -751,7 +755,7 @@ Acceptance:
 - An expired message image refreshes and succeeds.
 - An over-limit file aborts before upload.
 - A non-image is rejected with a clear message.
-- Cancelling aborts the request and leaves no temp file.
+- Cancelling aborts the request and shows no late result.
 
 ### P3: SauceNAO and fusion
 
@@ -862,8 +866,8 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 9 | Do proxy URLs fix the old `octet-stream` failure? | Passed for 7 engines and a phone PNG in Lens | Use original URLs or in-app providers |
 | 10 | Does `format=jpeg` work on the media proxy? | P2 | Use PNG, then the original |
 | 11 | Does a video URL return a still frame? | P2 | Disable video search |
-| 12 | Do binary XHR and progress events work? | P2 | Use `fetch` with `Content-Length` and declared size checks |
-| 13 | Does multipart upload work to provider hosts? | P2 | Use a raw body for trace.moe, then re-evaluate |
+| 12 | Do binary XHR and progress events work? | P2, device test pending | Use `fetch` with `Content-Length` and declared size checks |
+| 13 | Does a raw `Uint8Array` XHR body upload work on the device? | P2, device test pending | Use `FileModule` and multipart, then re-evaluate |
 | 14 | Do providers accept uploads from the phone's network? | P2 | Show the provider error and keep hand-offs |
 | 15 | SauceNAO limits and keyless behaviour | P3 | Keep the key required |
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |

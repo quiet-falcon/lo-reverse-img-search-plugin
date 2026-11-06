@@ -28,3 +28,11 @@ export async function openHandoff(
 	await Linking.openURL(url)
 	return true
 }
+
+// Result links come from providers, so only https is ever opened
+export async function openResult(url: string) {
+	if (!isHttps(url)) return false
+
+	await Linking.openURL(url)
+	return true
+}

@@ -1,3 +1,4 @@
+import { watchDiscordModules } from './adapters/discord-modules'
 import { patchMediaViewer } from './adapters/media-viewer'
 import { patchMessageSheet } from './adapters/message-sheet'
 import { startProbe } from './adapters/probe'
@@ -19,6 +20,7 @@ export default plugin({
 			: undefined
 
 		cleanup(
+			watchDiscordModules(),
 			patchMessageSheet(onError),
 			patchMediaViewer(onError, onViewerStatus),
 			closeSearchSheet,

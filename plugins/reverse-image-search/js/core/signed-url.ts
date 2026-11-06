@@ -27,3 +27,41 @@ export const toMediaProxy = (url: string) =>
 	url.replace(CdnAttachmentRe, 'https://media.discordapp.net/')
 
 export const encodeForHandoff = (url: string) => encodeURIComponent(url)
+
+const ParamKeyRe = /[?&]([^=&#]+)=/g
+
+// Appends only missing parameters, so the signature stays in place
+export function withParams(url: string, params: Record<string, string>) {
+	const hashIndex = url.indexOf('#')
+	const base = hashIndex < 0 ? url : url.slice(0, hashIndex)
+	const hash = hashIndex < 0 ? '' : url.slice(hashIndex)
+	const existing = new Set(
+		Array.from(base.matchAll(ParamKeyRe), match => match[1]),
+	)
+	const added = Object.entries(params)
+		.filter(([key]) => !existing.has(key))
+		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+	if (!added.length) return url
+
+	const joiner = !base.includes('?') ? '?' : /[?&]$/.test(base) ? '' : '&'
+
+	return base + joiner + added.join('&') + hash
+}
+
+export function scaledSize(width: unknown, height: unknown, maxEdge: number) {
+	const w = Number(width)
+	const h = Number(height)
+	if (!(w > 0 && h > 0)) return
+
+	const scale = Math.min(1, maxEdge / Math.max(w, h))
+
+	return {
+		width: Math.max(1, Math.round(w * scale)),
+		height: Math.max(1, Math.round(h * scale)),
+	}
+}
+
+const AttachmentPathRe =
+	/^https:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net)\/(?:ephemeral-)?attachments\//i
+
+export const isAttachmentUrl = (url: string) => AttachmentPathRe.test(url)
