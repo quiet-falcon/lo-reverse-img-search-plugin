@@ -292,6 +292,8 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `inflate.ts` and `pixels.ts`: Read PNGs with no outside package, and build small thumbnails.
 - `pdq.ts`: PDQ hash, quality, flips, and distance. Tests match the reference tool exactly.
 - `hash-list.ts`: The saved list, matching, and its signals.
+- `community-list.ts`: Signed list parsing, matching, signals, and report links.
+- `sha256.ts` and `ed25519.ts`: Verify the community list with no outside package. Tests check them against Node's crypto.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
 - `acquire.ts`: Lists the download URLs to try, in order.
@@ -530,6 +532,7 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 
 - Allow downloads only from `cdn.discordapp.com`, `media.discordapp.net`, and `images-ext-1` or `images-ext-2.discordapp.net`.
 - Allow API calls only to each provider's exact HTTPS host.
+- The community list only comes from `raw.githubusercontent.com`.
 - Check `xhr.responseURL` after redirects.
 - Set `withCredentials = false`.
 - Never send provider keys to any other host.
@@ -864,17 +867,22 @@ Acceptance:
 
 Work:
 
-- Entries in `blocklist/`, holding hashes, categories, and report counts, never images.
-- `publish-blocklist.yml`, publishing a compact list to Pages with a real Ed25519 signature. The private key stays in Actions, and the public key ships in the plugin.
-- `adapters/blocklist-sync.ts`: checks a small version file at most daily, then fetches, verifies, and stores the list.
-- A **Report** button that opens a prefilled GitHub issue. An Action turns it into a PR, and Sensei approves it.
-- Community hits show distance, report count, and category, because there is no image to compare.
+- Entries in `blocklist/entries.json`, holding hashes, categories, and report counts, never images. **Built.**
+- `publish-blocklist.yml`, publishing a compact list to the `community-list` branch with a real Ed25519 signature. The private key stays in Actions, and the public key ships in the plugin. **Built.** This replaces Pages, so the list needs no Pages setup or release.
+- `adapters/community-sync.ts`: fetches `manifest.json`, checks its signature, refuses older versions, then fetches `list.json` and checks its SHA-256. **Built.** It runs from a settings button until gate 32 measures the check on the phone. Daily updates can follow.
+- A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built.**
+- Community hits show distance, report count, and category, because there is no image to compare. **Built.**
+
+Setup Sensei must do, because this session can't reach repository settings:
+
+- Add the `BLOCKLIST_SIGNING_KEY` Actions secret, then send the public key for `ListPublicKey`.
+- Allow GitHub Actions to create pull requests.
 
 Acceptance:
 
-- Gate 19 passes.
+- The first signed list publishes, and the phone verifies it.
 - A tampered list is rejected.
-- A false-match entry can be removed through the same PR flow.
+- A report becomes a PR, and a false-match entry can be removed through the same PR flow.
 
 ### P8: Link risk
 
@@ -951,7 +959,7 @@ Valenced repositories are static. [S] `index.json` lists versions, URLs, SHA-256
 
 Repository URL: `https://quiet-falcon.github.io/lo-reverse-img-search-plugin/index.json`
 
-Enable Pages for the pool branch. [A, gate P7] Confirm that a push from the workflow actually updates the live site. If it does not, add an explicit Pages deployment job.
+Enable Pages for the pool branch. [A, gate P10] Confirm that a push from the workflow actually updates the live site. If it does not, add an explicit Pages deployment job.
 
 ### Rollback
 
@@ -979,7 +987,7 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |
 | 17 | Vision REST shape and billing requirement | Parked with Vision | Keep Vision off, or drop it |
 | 18 | Do thresholds match real results? | P10 | Retune them |
-| 19 | Does the Pages update run from the release workflow? | P7 | Add a deployment job |
+| 19 | Does the Pages update run from the release workflow? | P10 | Add a deployment job |
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
 | 21 | Does `maxResults` raise Web Detection's list sizes? | Parked with Vision | Use the default size and keep "at least" wording |
 | 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
@@ -989,9 +997,10 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 26 | Which metadata survives Discord's upload? | Partly passed: PNG text survived, JPEG XMP did not, one upload each | Drop local tag checks |
 | 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | Not needed: the plugin has its own PNG decoder | None |
 | 28 | Is PDQ fast enough on the phone? | Passed, 2026-11-06 | Use a smaller image, or hash in slices |
-| 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
+| 29 | Does the device have `crypto.subtle`? | Not needed: the plugin has its own Ed25519 and SHA code | None |
 | 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
 | 31 | Does the media proxy return a PNG with `format=png`? | Passed, 2026-11-06 | Fall back to original PNGs, and say other formats can't be saved |
+| 32 | Does BigInt work on the phone, and how long does a signature check take? | P7 | Replace BigInt with typed-array maths |
 
 Limitations already known:
 

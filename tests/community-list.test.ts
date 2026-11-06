@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { createHash, generateKeyPairSync, sign } from 'node:crypto'
 import { addReport, buildList, parseReport } from '../scripts/community-list'
 
@@ -7,16 +7,6 @@ const pem = keys.privateKey.export({ type: 'pkcs8', format: 'pem' }) as string
 const raw = (keys.publicKey.export({ format: 'der', type: 'spki' }) as Buffer)
 	.subarray(-32)
 	.toString('hex')
-
-mock.module(
-	'../plugins/reverse-image-search/js/core/community-list',
-	async () => {
-		const real = await import(
-			`../plugins/reverse-image-search/js/core/community-list.ts?real`
-		)
-		return { ...real, ListPublicKey: raw }
-	},
-)
 
 const { verifyEd25519, sha512 } = await import(
 	'../plugins/reverse-image-search/js/core/ed25519'
@@ -215,7 +205,7 @@ describe('syncCommunityList', () => {
 	})
 
 	test('stores a genuine list', async () => {
-		expect(await syncCommunityList(0)).toEqual({
+		expect(await syncCommunityList(0, raw)).toEqual({
 			kind: 'updated',
 			list: {
 				version: 5,
@@ -234,7 +224,7 @@ describe('syncCommunityList', () => {
 			['b'.repeat(64), 'scam-image', 1],
 		])
 
-		expect(await syncCommunityList(0)).toEqual({ kind: 'tampered' })
+		expect(await syncCommunityList(0, raw)).toEqual({ kind: 'tampered' })
 	})
 
 	test('rejects a forged manifest', async () => {
@@ -245,17 +235,17 @@ describe('syncCommunityList', () => {
 			other.privateKey.export({ type: 'pkcs8', format: 'pem' }) as string,
 		).manifest
 
-		expect(await syncCommunityList(0)).toEqual({ kind: 'tampered' })
+		expect(await syncCommunityList(0, raw)).toEqual({ kind: 'tampered' })
 	})
 
 	test('refuses to roll back to an older list', async () => {
-		expect(await syncCommunityList(5)).toEqual({ kind: 'current' })
+		expect(await syncCommunityList(5, raw)).toEqual({ kind: 'current' })
 		expect(FakeXhr.urls).toHaveLength(1)
 	})
 
 	test('reports a network failure', async () => {
 		FakeXhr.files = {}
 
-		expect(await syncCommunityList(0)).toEqual({ kind: 'failed' })
+		expect(await syncCommunityList(0, raw)).toEqual({ kind: 'failed' })
 	})
 })

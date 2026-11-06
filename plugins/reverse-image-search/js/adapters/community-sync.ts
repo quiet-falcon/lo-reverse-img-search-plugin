@@ -33,7 +33,10 @@ const request = (name: string, maxBytes: number, binary: boolean) =>
 	}).promise
 
 // Nothing is stored unless the signature and the file hash both check out
-export async function syncCommunityList(current: number): Promise<SyncOutcome> {
+export async function syncCommunityList(
+	current: number,
+	publicKey = ListPublicKey,
+): Promise<SyncOutcome> {
 	const manifestResponse = await request(
 		'manifest.json',
 		MaxResponseBytes,
@@ -48,7 +51,7 @@ export async function syncCommunityList(current: number): Promise<SyncOutcome> {
 		!verifyEd25519(
 			fromHex(manifest.signature),
 			ascii(manifestMessage(manifest)),
-			fromHex(ListPublicKey),
+			fromHex(publicKey),
 		)
 	)
 		return { kind: 'tampered' }

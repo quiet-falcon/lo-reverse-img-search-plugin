@@ -4,6 +4,7 @@
 - `findRenderTarget` in `plugins/reverse-image-search/js/adapters/probe.ts` follows the export handling described in [Pop Out Player](https://github.com/bleelblep/bleel-bazinga-repo/blob/b3dc168208e6de58027af420f5fbb4d730681ce5/plugins/pocket-browser/js/popout/viewerButton.tsx). No code was copied.
 - The action sheet tree search in `plugins/reverse-image-search/js/core/tree.ts` is adapted from [Message Logger](https://github.com/Valenced/valenced-community-plugins/blob/ef8f4ff782033ade38aa555b751dfb8e2350ad31/plugins/message-logger/js/actionsheet.tsx), under GPL-3.0.
 - `core/pdq.ts` is a TypeScript version of the PDQ hash from [facebook/ThreatExchange](https://github.com/facebook/ThreatExchange/tree/a9a36d4552875c385c4b40f2be847db2b613ed44/pdq/cpp), used under the BSD licence below. Its median step follows Torben Mogensen's public-domain algorithm.
+- `core/ed25519.ts` follows the verification steps in [RFC 8032](https://www.rfc-editor.org/rfc/rfc8032), and `core/sha256.ts` follows FIPS 180-4. No code was copied.
 
 ## ThreatExchange licence
 
