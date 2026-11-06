@@ -808,7 +808,14 @@ Acceptance:
 - A paid Lens API with the user's own key.
 - An optional relay on Sensei's server.
 - A native Kotlin share path.
-- An AI-generated image check, requested by Sensei on 2026-11-06 for spotting fake profiles. Raise it once P4 passes. Show a likelihood with its limits, never a verdict like "fake person", and research which detection services are accurate enough first.
+- **Profile check**, requested by Sensei on 2026-11-06 for spotting scam and fake profiles. Raise it once P4 passes. It reports signals about an image and an account, never who someone is:
+  - Avatar entry point: run the copy check and AI check on a user's profile picture.
+  - AI-generated likelihood. Research which detection services are accurate enough first. Show a likelihood with its limits.
+  - Metadata scan: camera, editing software, and AI-generator tags such as C2PA or Stable Diffusion `parameters` text. Never read or show GPS or location fields. [A] Discord is reported to strip most metadata on upload, so test what survives before relying on it.
+  - Account age from the user ID. [S] [Discord docs](https://docs.discord.com/developers/reference): `(snowflake >> 22) + 1420070400000` gives milliseconds.
+  - Mismatch flag: the image was online before the account existed.
+  - Same wording rules as the copy check: signals and limits, never stolen, fake, scammer, or safe.
+- No face recognition, as section 2 says. The profile check matches images and reads account signals, not faces.
 
 Anything here needs its own evaluation, because it adds scraping, cost, a server, or a native build.
 
