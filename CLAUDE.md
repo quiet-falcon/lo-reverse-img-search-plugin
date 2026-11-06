@@ -890,7 +890,7 @@ Acceptance:
 
 Work:
 
-- `core/link-risk.ts`: URL extraction, known scam domains, lookalike scoring, and `xn--` detection. **Built.**
+- `core/link-risk.ts`: URL extraction, known scam domains, lookalike scoring, and detection of `xn--` and non-Latin hosts. **Built.**
 - A **Check Links** row on messages with links, opening `ui/LinkSheet.tsx`. **Built.** The check runs on the phone, and links are never sent anywhere.
 - `adapters/link-check.ts` downloads [fisphish's Discord list](https://github.com/fisventurous/fisphish) from GitHub and keeps it in memory for 3 hours. **Built.** On 2026-11-06 it held about 32,000 domains, was refreshed the day before, and is MIT-licensed. Its upstream feeds keep their own terms, so this project fetches it rather than republishing it. nikolaischunk's list stopped in March 2024, and Discord-AntiScam was archived with no licence.
 - Real Discord, Steam, and Roblox domains are never flagged, even if a list names them.
@@ -900,6 +900,8 @@ Acceptance:
 
 - A known scam domain and a lookalike of `discord.com` are both flagged.
 - Normal Discord and Steam links are not flagged.
+
+**P8 passed on 2026-11-07** with alpha2, apart from the real Discord link, which automated tests cover but no recorded device run has. See `docs/compatibility.md`.
 
 ### P9: Crop and mirror search
 

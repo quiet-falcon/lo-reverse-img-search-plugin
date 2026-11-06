@@ -233,14 +233,17 @@ Gates closed by this run:
 
 ## P8 device checks
 
-First device run on 2026-11-06 with `0.8.0-alpha1`, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. Later builds also read links inside Discord formatting and hosts written with look-alike letters.
+Tested with `0.8.0-alpha2` (commit `71b2d5d`) on 2026-11-07, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `1a2489b55713cddc9b9ebd409c6ca9f05ce76a9092668c06faf7373b050337a8`. All seven test messages matched, as reported by Sensei.
 
 | Check | Result |
 | --- | --- |
-| Check Links row shows only on messages with links | Not run: row and sheet seen on a link message, other messages not checked |
-| Listed scam domain is flagged | Passed, screenshot: `dlscord-nitro.xyz` |
-| Lookalike is flagged | Not run |
-| Real Discord link is not flagged | Not run |
-| Unrelated link shows no known risks | Not run |
-| Daily community update runs after start | Not run |
+| Check Links row shows only on messages with links | Passed: a message with no link had no row |
+| Listed scam domain is flagged | Passed: `0pensea-gifts-013.vercel.app` |
+| Listed scam domain in spoiler bars is flagged | Passed: `dlscord-nitro.xyz` |
+| Lookalike is flagged | Passed: `disc0rd-gift-test.example` |
+| Host with a Cyrillic letter is flagged | Passed: `dіscord.com`, which uses U+0456 and encodes to `xn--dscord-pvf.com` |
+| Real Steam link is not flagged | Passed: `store.steampowered.com` |
+| Unrelated link shows no known risks | Passed: `github.com` |
+| Real Discord link is not flagged | Not run on a recorded build: covered by automated tests |
+| Daily community update runs after start | Not run: nothing on screen shows it, and the list hasn't changed since the manual update |
 

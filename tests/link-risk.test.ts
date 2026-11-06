@@ -120,7 +120,7 @@ describe('linkSignals', () => {
 		expect(linkSignals(['dlscord.gift'])[0]?.title).toBe(
 			'Looks like discord.com: dlscord.gift',
 		)
-		expect(isDisguised('xn--dscord-6ve.com')).toBe(true)
+		expect(isDisguised('xn--dscord-pvf.com')).toBe(true)
 		expect(linkSignals(['xn--abc.com'])[0]?.title).toStartWith(
 			'Uses special characters',
 		)
