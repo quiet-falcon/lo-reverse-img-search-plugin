@@ -1,0 +1,72 @@
+# Runs on every push and pull request, with read-only access and no secrets.
+
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - run: bun install --frozen-lockfile
+
+      - name: Lint the workflow scripts
+        run: shellcheck .github/scripts/*.sh
+
+      - run: bun run verify
+
+      - name: Package the production ZIP
+        run: |
+          ./gradlew --no-daemon packageReverseImageSearch
+          mkdir -p artifacts/production artifacts/probe
+          cp build/dist/*.zip artifacts/production/
+
+      - name: Package the device probe ZIP
+        run: |
+          ./gradlew --no-daemon packageReverseImageSearch -Pdev
+          for zip in build/dist/*.zip; do
+            cp "$zip" "artifacts/probe/$(basename "$zip" .zip)-probe.zip"
+          done
+
+      - name: Check the ZIP contents
+        run: .github/scripts/check-zip.sh artifacts/production/*.zip artifacts/probe/*.zip
+
+      - name: Check the lockfile did not change
+        run: git diff --exit-code bun.lock
+
+      - name: Generate index from the production ZIP
+        run: |
+          bun run generate-index \
+            --dist artifacts/production \
+            --base-url https://valenced.local \
+            --out /tmp/index.json
+          cat /tmp/index.json
+
+      # Uploaded unarchived, so each download is the plugin ZIP itself
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: artifacts/probe/*.zip
+          archive: false
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: artifacts/production/*.zip
+          archive: false
+          if-no-files-found: error
