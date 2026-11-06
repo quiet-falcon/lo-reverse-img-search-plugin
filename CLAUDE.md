@@ -997,7 +997,7 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 29 | Does the device have `crypto.subtle`? | Not needed: the plugin has its own Ed25519 and SHA code | None |
 | 30 | Does the message sheet's author or `UserStore` give the avatar and banner hashes? | Passed, 2026-11-06 | Use `getAvatarURL`, and leave banners out |
 | 31 | Does the media proxy return a PNG with `format=png`? | Passed, 2026-11-06 | Fall back to original PNGs, and say other formats can't be saved |
-| 32 | Does BigInt work on the phone, and how long does a signature check take? | P7 | Replace BigInt with typed-array maths |
+| 32 | Does BigInt work on the phone, and how long does a signature check take? | Passed, 2026-11-06: 0.2 seconds including the network | Replace BigInt with typed-array maths |
 
 Limitations already known:
 

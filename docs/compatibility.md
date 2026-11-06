@@ -210,3 +210,24 @@ Gates closed by this run:
 | --- | --- | --- |
 | 28 | Is PDQ fast enough on the phone? | Passed |
 | 31 | Does the media proxy return a PNG with `format=png`? | Passed: PNG and JPEG uploads both hashed |
+
+## P7 device checks
+
+Tested with `0.7.0-alpha1` (commit `6bc8dc8`) on 2026-11-06, Discord 352.6 canary, Valenced 1.3.0, Android SDK 34. This was a dev build packaged by hand from that commit, SHA-256 `faabd2d0de11a865353aaeaa847ccb2f0d843f91d065b5463e0148df5106cb88`.
+
+| Check | Result |
+| --- | --- |
+| First signed list publishes from Actions | Passed |
+| Plugin code verifies the published list, and rejects a changed message | Passed off device |
+| Update community list on the phone | Passed, reported by Sensei |
+| Second update says already up to date | Passed, screenshot: 0.2 seconds |
+| Report becomes a PR | Not run |
+| Merged report reaches the phone and matches | Not run |
+| False entry can be removed | Not run |
+
+Gates closed by this run:
+
+| # | Question | Status |
+| --- | --- | --- |
+| 32 | Does BigInt work on the phone, and how long does a signature check take? | Passed: a full check, including the network, took 0.2 seconds. The signature is verified before the version is compared |
+
