@@ -73,7 +73,7 @@ An in-app copy check using Google Cloud Vision is built but parked, because it n
 - **Profile check ✅:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
 - **AI image signals ✅:** read AI tags where Discord keeps them, which so far means PNG text but not JPEG labels, plus a SynthID row in the browser.
 - **My list ✅:** save an image to your own list, then match resized, recompressed, or mirrored copies on your phone. Cropped copies can slip through.
-- **Community list 🔨:** a curated, signed list comes after that.
+- **Community list 🔨:** a curated, signed list of reported image fingerprints. It holds no pictures, and every addition needs approval.
 - **Link risk ⬜:** flag known phishing domains and lookalikes of sites like `discord.com`.
 
 All of these appear as labelled signals, and each one says what it's based on.
@@ -117,6 +117,8 @@ These rules are built into the project:
 | Avatar or banner hand-off | The image link, including the user's ID |
 | AI tag check | Nothing outside Discord. The file downloads from Discord and is read on your phone |
 | My list | Nothing outside Discord. The fingerprint and small picture stay on your phone |
+| Community list update | Your IP address, sent to GitHub when you tap update |
+| Report to community list | A public GitHub issue under your GitHub account, holding the image's fingerprint |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
 | Result thumbnails | Your IP address, sent to the host serving each thumbnail |
 

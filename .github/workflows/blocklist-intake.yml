@@ -1,0 +1,43 @@
+# Turns a report issue into a pull request for Sensei to approve.
+# Issue text is untrusted. It only reaches the script through an environment
+# variable, and the script accepts exact lines.
+
+name: Community list intake
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  intake:
+    if: contains(github.event.issue.labels.*.name, 'hash-report')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Add the report
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: bun scripts/community-list.ts intake
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b "report-$ISSUE"
+          git add blocklist/entries.json
+          git commit -q -m "Add community report #$ISSUE"
+          git push -q -u origin "report-$ISSUE"
+          gh pr create --title "Add community report #$ISSUE" --body "Closes #$ISSUE"

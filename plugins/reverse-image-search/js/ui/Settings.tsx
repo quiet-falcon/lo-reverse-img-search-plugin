@@ -4,6 +4,7 @@ import { Design } from '@valenced/discord/design'
 import { formatVersion } from '@valenced/plugins/utils'
 import { useState } from 'react'
 import { ScrollView } from 'react-native'
+import { syncCommunityList } from '../adapters/community-sync'
 import {
 	openKeyPage,
 	openPrivacyPage,
@@ -11,6 +12,7 @@ import {
 } from '../adapters/external'
 import { updateSettings, useSettings } from '../adapters/settings-store'
 import { dateText } from '../core/account-age'
+import { ListPublicKey } from '../core/community-list'
 import { VisionAvailable } from '../core/features'
 import { removeSaved } from '../core/hash-list'
 import { cleanKey, looksLikeKey, looksLikeVisionKey } from '../core/settings'
@@ -86,6 +88,47 @@ function KeyField({
 				{value !== '' && <TableRow label="Remove key" onPress={clear} />}
 			</TableRowGroup>
 		</Stack>
+	)
+}
+
+function CommunityListGroup() {
+	const { communityList } = useSettings()
+	const [note, setNote] = useState('')
+	const [busy, setBusy] = useState(false)
+	const count = communityList.entries.length
+
+	const update = async () => {
+		setBusy(true)
+		setNote('')
+		const started = Date.now()
+		const outcome = await syncCommunityList(communityList.version)
+		const seconds = ((Date.now() - started) / 1000).toFixed(1)
+		setBusy(false)
+
+		if (outcome.kind === 'updated') {
+			await updateSettings({ communityList: outcome.list })
+			setNote(`Updated in ${seconds} seconds.`)
+		} else if (outcome.kind === 'current')
+			setNote(`Already up to date. Checked in ${seconds} seconds.`)
+		else if (outcome.kind === 'tampered')
+			setNote("The list failed its security check, so it wasn't saved.")
+		else
+			setNote("Couldn't reach the list. Check your connection, then try again.")
+	}
+
+	return (
+		<TableRowGroup title="Community list">
+			<TableRow
+				label={busy ? 'Updating…' : 'Update community list'}
+				subLabel={
+					note ||
+					(ListPublicKey
+						? `${count} reported ${count === 1 ? 'image' : 'images'} saved. Downloads from GitHub.`
+						: 'Not set up yet.')
+				}
+				onPress={busy || !ListPublicKey ? undefined : update}
+			/>
+		</TableRowGroup>
 	)
 }
 
@@ -193,6 +236,8 @@ export default function Settings({ api: { plugin } }: SettingsProps) {
 							/>
 						))}
 					</TableRowGroup>
+
+					<CommunityListGroup />
 
 					<TableRowGroup title="Privacy">
 						<TableRow

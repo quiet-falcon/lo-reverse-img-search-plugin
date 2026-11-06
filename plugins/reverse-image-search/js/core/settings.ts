@@ -1,5 +1,7 @@
+import { EmptyList, readStoredList } from './community-list'
 import { VisionAvailable } from './features'
 import { readSavedImages } from './hash-list'
+import type { CommunityList } from './community-list'
 import type { SavedImage } from './hash-list'
 import type { ProviderId } from './types'
 
@@ -12,6 +14,7 @@ export type Settings = {
 	visionText: boolean
 	consented: ProviderId[]
 	hashList: SavedImage[]
+	communityList: CommunityList
 }
 
 export const DefaultSettings: Settings = {
@@ -23,6 +26,7 @@ export const DefaultSettings: Settings = {
 	visionText: true,
 	consented: [],
 	hashList: [],
+	communityList: EmptyList,
 }
 
 const ProviderIds: ProviderId[] = ['tracemoe', 'saucenao', 'vision']
@@ -53,6 +57,7 @@ export function readSettings(value: unknown): Settings {
 			? ProviderIds.filter(id => (raw.consented as unknown[]).includes(id))
 			: [],
 		hashList: readSavedImages(raw.hashList),
+		communityList: readStoredList(raw.communityList),
 	}
 }
 

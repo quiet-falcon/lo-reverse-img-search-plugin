@@ -32,6 +32,12 @@ An avatar or banner link includes that user's ID.
 
 Profile pictures and banners check your list by themselves once it has entries, which only contacts Discord.
 
+## Community list
+
+**Update community list** downloads a signed list from `raw.githubusercontent.com`, so GitHub sees your IP address. The list holds fingerprints, categories, and report counts, never pictures or names.
+
+**Report to community list** opens GitHub in your browser with the image's fingerprint filled in. Nothing is sent until you submit it. The issue is public and shows your GitHub account. Every report needs Sensei's approval before it joins the list.
+
 ## Device probe
 
 Dev builds keep version numbers, sheet keys, and field names in memory, including the field names of user records. They never read field values, and the report clears on reload.
@@ -50,7 +56,6 @@ These hosts are for later phases and aren't contacted yet. This list is updated 
 
 | Phase | Host | What it receives |
 | --- | --- | --- |
-| P7 | `quiet-falcon.github.io` | A request for the community list, plus your IP address |
 | P8 | RDAP services | Domains found in a message, plus your IP address |
 
 The plugin never reads or shows GPS or location fields.
