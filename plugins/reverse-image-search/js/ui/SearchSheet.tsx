@@ -9,6 +9,7 @@ import { handoffChoices, openHandoff, openResult } from '../adapters/external'
 import { searchImage } from '../adapters/search'
 import { recordConsent, useSettings } from '../adapters/settings-store'
 import { CopyLimits, copyDetail, copyHeadline } from '../core/copy-check'
+import { VisionAvailable } from '../core/features'
 import { fuseResults } from '../core/fusion'
 import {
 	ConsentNotices,
@@ -23,7 +24,11 @@ import {
 	visibleResults,
 } from '../core/messages'
 import { createSearchSession } from '../core/session'
-import { activeProviders, needsConsent, visionSpec } from '../core/settings'
+import {
+	availableProviders,
+	copyCheckSpec,
+	needsConsent,
+} from '../core/settings'
 import { previewUrl } from '../core/target'
 import type { SearchState } from '../core/session'
 import type { ProviderSpec } from '../core/settings'
@@ -155,9 +160,9 @@ function Handoffs({ target }: { target: ImageTarget }) {
 
 function InAppSearch({ target }: { target: ImageTarget }) {
 	const settings = useSettings()
-	const providers = activeProviders(settings)
+	const providers = availableProviders(settings)
 	const ids = providers.map(spec => spec.id)
-	const copySpec = visionSpec(settings)
+	const copySpec = copyCheckSpec(settings)
 	const session = useRef(createSearchSession()).current
 	const [state, setState] = useState<SearchState>('idle')
 	const [outcome, setOutcome] = useState<SearchOutcome>()
@@ -241,7 +246,7 @@ function InAppSearch({ target }: { target: ImageTarget }) {
 							onPress={() => start({ specs: [copySpec], mode: 'copies' })}
 						/>
 					)}
-					{!busy && !copySpec && (
+					{VisionAvailable && !busy && !copySpec && (
 						<ActionSheetRow
 							label="Check copies"
 							subLabel="Add a Google Vision key in plugin settings, or use TinEye or Google Lens below."

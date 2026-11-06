@@ -1,3 +1,4 @@
+import { VisionAvailable } from './features'
 import type { ProviderId } from './types'
 
 export type Settings = {
@@ -77,6 +78,15 @@ export function activeProviders(settings: Settings): ProviderSpec[] {
 
 	return specs
 }
+
+// A saved Vision switch does nothing while Vision is parked
+export const availableProviders = (settings: Settings) =>
+	activeProviders(settings).filter(
+		spec => VisionAvailable || spec.id !== 'vision',
+	)
+
+export const copyCheckSpec = (settings: Settings) =>
+	VisionAvailable ? visionSpec(settings) : undefined
 
 export const needsConsent = (settings: Settings, specs: ProviderSpec[]) =>
 	specs.map(spec => spec.id).filter(id => !settings.consented.includes(id))

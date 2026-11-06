@@ -6,9 +6,7 @@
 
 **SauceNAO** gets the image bytes, your IP address, and your API key when you tap a search button that names it. The plugin doesn't claim SauceNAO deletes images, because its terms haven't been checked for that. The upload is named `image.jpg` (or the matching type) and carries no Discord link.
 
-**Google Vision** gets the image bytes, your IP address, and your API key when you tap a button that names it. The plugin doesn't claim Google deletes images. The upload is base64 JSON with no filename or Discord link. If **Read text in images** is on, Google also reads text in the image.
-
-The services above see your IP address, as any website does. In the app, the first-search notice calls this "connection details" so it reads calmly. It means the same thing.
+Both services see your IP address, as any website does. In the app, the first-search notice calls this "connection details" so it reads calmly. It means the same thing.
 
 Each search sends the image only to the services named on the button. The first search with each service shows a one-time notice, and **Show first-search notices again** in settings brings them back.
 
@@ -24,7 +22,11 @@ Dev builds keep version numbers, sheet keys, and field names in memory. They nev
 
 ## API keys
 
-Your SauceNAO and Google Vision keys are stored as plain text in this plugin's settings file on your phone. Other plugins may be able to read them, because plugins share Discord's process. Each key is only ever sent to its own service, `saucenao.com` or `vision.googleapis.com`, and is never logged. Vision charges your Google Cloud account past the free tier, so restrict the key to the Cloud Vision API.
+Your SauceNAO key is stored as plain text in this plugin's settings file on your phone. Other plugins may be able to read it, because plugins share Discord's process. The key is only ever sent to `saucenao.com`, and is never logged.
+
+## Parked: Google Vision
+
+Google Vision is built but hidden, and the plugin doesn't contact it. If it comes back, Google would get the image bytes, your IP address, and your API key when you tap a button that names it, and Vision would charge your Google Cloud account past the free tier.
 
 ## Planned network hosts
 
@@ -32,8 +34,7 @@ These hosts are for later phases and aren't contacted yet. This list is updated 
 
 | Phase | Host | What it receives |
 | --- | --- | --- |
-| P5 | `web.archive.org` | Addresses of pages Vision found, plus your IP address |
-| P5 | `cdn.discordapp.com` | Avatar and banner requests, plus your IP address |
+| P5 | `cdn.discordapp.com` | Avatar, banner, and original file requests, plus your IP address |
 | P7 | `quiet-falcon.github.io` | A request for the community list, plus your IP address |
 | P8 | RDAP services | Domains found in a message, plus your IP address |
 

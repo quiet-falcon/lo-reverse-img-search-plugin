@@ -89,6 +89,8 @@ Errors: a non-zero `header.status` or a non-200 response. Messages mentioning a 
 
 ## Google Cloud Vision
 
+Parked on 2026-11-06. The code stays in the repo, hidden by `VisionAvailable`.
+
 [S] Taken from the [web detection docs](https://docs.cloud.google.com/vision/docs/detecting-web), the [request docs](https://docs.cloud.google.com/vision/docs/request), and the [API key docs](https://docs.cloud.google.com/docs/authentication/api-keys-use). Not yet confirmed by a live call.
 
 Request:
@@ -157,4 +159,4 @@ Errors:
 - HTTP 413 is too large, 429 is rate limited, and 5xx is busy.
 - An `error` inside `responses[0]` uses gRPC codes: 3 bad image, 7 setup, 8 rate limited, 13 and 14 busy.
 
-[A, gate P4] The error mapping for keys and billing needs a live failure to confirm.
+[A, parked with Vision] The error mapping for keys and billing needs a live failure to confirm.

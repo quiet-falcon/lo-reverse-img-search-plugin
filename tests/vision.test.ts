@@ -7,6 +7,7 @@ import {
 	distinctSites,
 	siteOf,
 } from '../plugins/reverse-image-search/js/core/copy-check'
+import { VisionAvailable } from '../plugins/reverse-image-search/js/core/features'
 import { fuseResults } from '../plugins/reverse-image-search/js/core/fusion'
 import {
 	errorMessage,
@@ -16,6 +17,8 @@ import {
 } from '../plugins/reverse-image-search/js/core/messages'
 import {
 	activeProviders,
+	availableProviders,
+	copyCheckSpec,
 	DefaultSettings,
 	looksLikeVisionKey,
 	needsConsent,
@@ -362,6 +365,16 @@ describe('Vision settings', () => {
 		expect(
 			needsConsent(stored, [{ id: 'vision', key: Key, text: true }]),
 		).toEqual([])
+	})
+})
+
+describe('parked Vision', () => {
+	const ready = { ...DefaultSettings, vision: true, visionKey: Key }
+
+	test('stays out of every search and the copy check', () => {
+		expect(VisionAvailable).toBe(false)
+		expect(availableProviders(ready)).toEqual([{ id: 'tracemoe' }])
+		expect(copyCheckSpec(ready)).toBeUndefined()
 	})
 })
 

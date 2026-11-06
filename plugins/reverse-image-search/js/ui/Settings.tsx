@@ -10,6 +10,7 @@ import {
 	openVisionKeyPage,
 } from '../adapters/external'
 import { updateSettings, useSettings } from '../adapters/settings-store'
+import { VisionAvailable } from '../core/features'
 import { cleanKey, looksLikeKey, looksLikeVisionKey } from '../core/settings'
 import { ProbeSection } from './ProbeSettings'
 import type { PluginSettingsComponent } from '@valenced/plugins/types'
@@ -116,16 +117,18 @@ export default function Settings({ api: { plugin } }: SettingsProps) {
 								updateSettings({ saucenao })
 							}
 						/>
-						<TableSwitchRow
-							label="Google Vision"
-							subLabel={
-								hasVisionKey
-									? 'Photos, memes, and screenshots. Key added.'
-									: 'Photos, memes, and screenshots. Add your own key below to use it.'
-							}
-							value={settings.vision}
-							onValueChange={(vision: boolean) => updateSettings({ vision })}
-						/>
+						{VisionAvailable && (
+							<TableSwitchRow
+								label="Google Vision"
+								subLabel={
+									hasVisionKey
+										? 'Photos, memes, and screenshots. Key added.'
+										: 'Photos, memes, and screenshots. Add your own key below to use it.'
+								}
+								value={settings.vision}
+								onValueChange={(vision: boolean) => updateSettings({ vision })}
+							/>
+						)}
 					</TableRowGroup>
 
 					<KeyField
@@ -138,33 +141,35 @@ export default function Settings({ api: { plugin } }: SettingsProps) {
 						onOpenLink={() => openKeyPage().catch(() => {})}
 					/>
 
-					<Stack spacing={8}>
-						<KeyField
-							name="Google Vision"
-							value={settings.visionKey}
-							isValid={looksLikeVisionKey}
-							onSave={visionKey => updateSettings({ visionKey })}
-							linkLabel="Set up Google Vision"
-							linkNote="Opens Google Cloud in your browser."
-							onOpenLink={() => openVisionKeyPage().catch(() => {})}
-						/>
-						<Text variant="text-xs/normal" color="text-muted">
-							Needs a Google Cloud project with the Cloud Vision API and billing
-							turned on. Each month, the first 1,000 web searches and 1,000 text
-							reads are free. After that, Google charges US$3.50 and US$1.50 per
-							1,000.
-						</Text>
-						<TableRowGroup>
-							<TableSwitchRow
-								label="Read text in images"
-								subLabel="Finds watermarks and handles. Uses one extra Vision unit per image."
-								value={settings.visionText}
-								onValueChange={(visionText: boolean) =>
-									updateSettings({ visionText })
-								}
+					{VisionAvailable && (
+						<Stack spacing={8}>
+							<KeyField
+								name="Google Vision"
+								value={settings.visionKey}
+								isValid={looksLikeVisionKey}
+								onSave={visionKey => updateSettings({ visionKey })}
+								linkLabel="Set up Google Vision"
+								linkNote="Opens Google Cloud in your browser."
+								onOpenLink={() => openVisionKeyPage().catch(() => {})}
 							/>
-						</TableRowGroup>
-					</Stack>
+							<Text variant="text-xs/normal" color="text-muted">
+								Needs a Google Cloud project with the Cloud Vision API and
+								billing turned on. Each month, the first 1,000 web searches and
+								1,000 text reads are free. After that, Google charges US$3.50
+								and US$1.50 per 1,000.
+							</Text>
+							<TableRowGroup>
+								<TableSwitchRow
+									label="Read text in images"
+									subLabel="Finds watermarks and handles. Uses one extra Vision unit per image."
+									value={settings.visionText}
+									onValueChange={(visionText: boolean) =>
+										updateSettings({ visionText })
+									}
+								/>
+							</TableRowGroup>
+						</Stack>
+					)}
 
 					<TableRowGroup title="Privacy">
 						<TableRow

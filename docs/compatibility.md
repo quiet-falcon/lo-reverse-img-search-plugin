@@ -140,7 +140,15 @@ Run by Sensei on 2026-11-06 from his browser.
 
 ## P4 device checks
 
-Built as `0.4.0-alpha1`. These have not been run on a device yet.
+Google Vision was skipped by Sensei on 2026-11-06, before any live call. Its checks wait until it returns.
+
+| Check | Result |
+| --- | --- |
+| TinEye row opens sorted by oldest | Not run |
+| Hand-off rows show their labels | Not run |
+| No Vision setting or row appears | Not run |
+
+Run these when Vision returns:
 
 | Check | Result |
 | --- | --- |
@@ -153,5 +161,4 @@ Built as `0.4.0-alpha1`. These have not been run on a device yet.
 | Show pages lists pages that open | Not run |
 | Image with text shows Text in image | Not run |
 | Bad key shows a clear message | Not run |
-| TinEye row opens sorted by oldest | Not run |
 | Encoding a normal image doesn't visibly freeze the app | Not run |

@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P4 in testing](https://img.shields.io/badge/status-P4%20in%20testing-blue)](#project-status)
+[![Status: P5 in progress](https://img.shields.io/badge/status-P5%20in%20progress-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -30,12 +30,12 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
 | **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
 | **P3** | SauceNAO results and ranked merging | ✅ Passed |
-| **P4** | Google Cloud Vision, copy check, and image text | 🧪 Built, needs device testing |
-| **P5** | Profile check: account age, avatars, banners, and AI tags | ⬜ Not started |
+| **P4** | Oldest-first TinEye and row labels. Google Vision parked | 🧪 Needs device testing |
+| **P5** | Profile check: account age, avatars, banners, and AI tags | 🔨 In progress |
 | **P6** | Local image hash list | ⬜ Not started |
 | **P7** | Community hash list | ⬜ Not started |
 | **P8** | Link risk checks | ⬜ Not started |
-| **P9** | Crop and mirror search | ⬜ Not started |
+| **P9** | Crop and mirror search | ⏸️ Parked with Vision |
 | **P10** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
 
 Each phase must pass before the next begins. Tested versions and evidence are recorded in [`docs/compatibility.md`](docs/compatibility.md).
@@ -54,7 +54,7 @@ Each phase must pass before the next begins. Tested versions and evidence are re
 | --- | --- | --- | --- | --- |
 | Anime frame | [trace.moe](https://soruly.github.io/trace.moe-api/) | Title, episode, and timestamp | None | ✅ Working |
 | Art or manga | [SauceNAO](https://saucenao.com/) | Artist and source page | Free API key | ✅ Working |
-| Photo, meme, or screenshot | [Google Cloud Vision](https://cloud.google.com/vision) | Pages using the image | Your own API key | 🧪 Needs device testing |
+| Photo, meme, or screenshot | Browser hand-offs | The engine's own results page | None | ✅ Working |
 
 Provider scores aren't comparable, so results are ranked into **Exact**, **Strong**, and **Possible** tiers instead of being averaged. Each provider's status is always shown.
 
@@ -62,32 +62,20 @@ Provider scores aren't comparable, so results are ranked into **Exact**, **Stron
 
 Google Lens, Yandex, Bing, TinEye, SauceNAO, IQDB, trace.moe, and ImgOps all work on a real device. Each row opens one engine, and TinEye opens sorted by oldest.
 
-### 🧾 Copy check 🧪
+### 🧾 Copy check
 
-Has this image been used across the web? The copy check helps you spot a profile photo that may be copied, or warn someone that their own photo is being reused.
+Has this image been used across the web? Tap **TinEye** to see the total match count and the oldest copy, or **Google Lens** for a wider look. Copies don't prove who owns a photo, and no copies doesn't prove it's real.
 
-| Distinct sites | Label |
-| --- | --- |
-| 0 | No copies found |
-| 1 to 4 | Found on a few sites |
-| 5 to 19 | Found on several sites |
-| 20 or more | Widely used online |
+An in-app copy check using Google Cloud Vision is built but parked, because it needs a billing account. It can come back later with one switch.
 
-The check needs a Google Cloud Vision key. Without one, the TinEye hand-off shows a total match count and the oldest copy. Vision returns lists rather than a total, so counts read "at least". It can also show what Google thinks the image is, plus any text in it, such as a watermark or a handle.
+### 🕵️ Spotting scam profiles
 
-Tap **What this means** for the limits. Copies don't prove who owns a photo, and no copies doesn't prove it's real.
+- **Profile check 🔨:** tap **Check Profile** on a message to see the account's age, then search its avatar and banner.
+- **AI image signals 🔨:** read AI tags where Discord keeps them, plus a SynthID row in the browser.
+- **Hash lists ⬜:** save an image to your own list, then match reused copies on your device. A curated community list comes after that.
+- **Link risk ⬜:** flag known phishing domains and lookalikes of sites like `discord.com`.
 
-### 🕵️ Spotting scam profiles ⬜
-
-Planned, in build order:
-
-- **Profile check:** account age from the user ID, avatar and banner copy checks, and a flag when a matching page is older than the account.
-- **AI image signals:** local AI tags where Discord keeps them, plus a SynthID row in the browser.
-- **Hash lists:** save an image to your own list, then match reused copies on your device. A curated community list comes after that.
-- **Link risk:** flag known phishing domains and lookalikes of sites like `discord.com`.
-- **Crop and mirror search:** search just the background, or a flipped copy, with in-app providers.
-
-All of these appear as labelled signals in one strip, and each one says what it's based on.
+All of these appear as labelled signals, and each one says what it's based on.
 
 ## How it will work
 
@@ -100,10 +88,8 @@ flowchart TD
     E --> F[Confirm the file type from its bytes]
     F --> G[trace.moe]
     F --> H[SauceNAO]
-    F --> I[Google Cloud Vision]
     G --> J[Merge, dedupe, and rank]
     H --> J
-    I --> J
     J --> K[Show results]
     K --> L[Delete the temporary file]
 ```
@@ -125,7 +111,7 @@ These rules are built into the project:
 
 | Search path | What leaves your device |
 | --- | --- |
-| In-app provider | Image bytes and your IP address, sent to that provider. Google Vision also gets your key |
+| In-app provider | Image bytes and your IP address, sent to that provider |
 | Browser hand-off | The image link, including channel ID, attachment ID, filename, and a temporary signature |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
 | Result thumbnails | Your IP address, sent to the host serving each thumbnail |
