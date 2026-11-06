@@ -30,4 +30,19 @@ Fill this in from the probe report. Never paste signed URLs here.
 | 6 | `MediaShareActionSheet` exists | Passed | Sheet key seen, plugins off run |
 | 7 | Attachment, embed, and video fields | Partly passed | Attachment and embed captured. Video and stickers still open |
 
-Each probe ran with no errors. The plugins-on run did not open the viewer, so that combination is still open.
+Alpha2 passed with plugins on: the viewer report had no errors, and switching the plugin off showed none. **P0 passed on 2026-11-06.**
+
+## P1 hand-off results
+
+Record pass or fail for each engine, on the default link and on the original link.
+
+| Engine | Default link | Original link |
+| --- | --- | --- |
+| Google Lens | Not run | Not run |
+| Yandex | Not run | Not run |
+| Bing | Not run | Not run |
+| TinEye | Not run | Not run |
+| SauceNAO | Not run | Not run |
+| IQDB | Not run | Not run |
+| trace.moe | Not run | Not run |
+| ImgOps | Not run | Not run |

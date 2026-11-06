@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.1.0-alpha2",
+	"version": "0.1.0-alpha3",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -217,15 +217,15 @@ P0 run on 2026-11-06:
 
 | Step | Result |
 | --- | --- |
-| `bun run verify` | **Passed:** lint, type-check, 19 tests, build |
+| `bun run verify` | **Passed:** lint, type-check, 64 tests, build |
 | Pinned install and `--frozen-lockfile` | **Passed** on GitHub Actions against real GitHub, and `bun.lock` did not change |
 | Gradle packaging | **Passed** on GitHub Actions for production and probe ZIPs, with no token |
 | Hand-built probe ZIP | **Passed** `generate-index`, with `manifest.json` and `index.js` at its root |
 | Actions ZIP contents | **Passed:** `check-zip.sh` found only `manifest.json` and `index.js`. The probe's two files match the hand-built ZIP by SHA-256 |
 | Device install | **Passed** on Valenced 1.3.0, production build, Discord 352.6 canary, Android SDK 34 |
-| Device stop and viewer with plugins on | **Not run** |
+| Device stop and viewer with plugins on | **Passed** with alpha2, no errors |
 
-Treat the "Not run" rows as open until P0 passes.
+**P0 passed on 2026-11-06.**
 
 ### Where to build
 
@@ -281,6 +281,7 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `types.ts`: `ImageTarget`, `ProviderResult`, `SearchSession`, and error categories.
 - `target.ts`: Finds searchable images from messages and media sources.
 - `signed-url.ts`: Host checks, expiry, proxy URL building, and hand-off encoding.
+- `tree.ts`: Finds and edits nodes in React element trees.
 - `sniff.ts`: Magic-byte detection for JPEG, PNG, GIF, WebP, and ISO BMFF formats.
 - `limits.ts`: Size, time, and cache limits.
 - `session.ts`: Search state machine with cancellation.
@@ -319,7 +320,8 @@ Providers build plain request data and parse plain text. Only `adapters/http.ts`
 - `cache-file.ts`: Temporary file writes and cleanup through `FileModule`.
 - `message-sheet.tsx`: Adds the long-press row.
 - `media-viewer.tsx`: Adds the viewer button.
-- `external.ts`: Opens links and copies text.
+- `external.ts`: Lists hand-offs and opens them. Keeps provider URLs out of the UI.
+- `icons.ts`: Finds the search icon, with a fallback.
 
 ### Search states
 
@@ -349,7 +351,7 @@ If one entry point fails, keep the others working. Never let a patch failure bre
 - [S] Device report, Discord 352.6. Attachments: `id`, `url`, `proxy_url`, `filename`, `content_type`, `original_content_type` (not always present), `size`, `width`, `height`, `placeholder`.
 - [S] Embeds: `type`, `url`, `image`, `thumbnail`, `video`. Embed images use camelCase: `url`, `proxyURL`, `contentType`, `width`, `height`, `srcIsAnimated`.
 - [S] Viewer source: `uri`, `sourceURI`, `shareURI`, `attachmentId`, `messageId`, `channelId`, `guildId`, `contentType`, `filename`, `width`, `height`, `spoiler`, `obscure`, `mediaIndex`.
-- [A, gate P1] Sticker and video shapes. The report did not sample them.
+- [A, gate P1] Sticker and video shapes. The report did not sample them, so P1 leaves both out of search targets.
 
 Show a picker when a message has more than one image. Spoilered images stay blurred until tapped. Videos use a single still frame.
 
@@ -717,9 +719,11 @@ Acceptance:
 
 Work:
 
-- Target extraction and signed URL logic.
-- Long-press row, and viewer button if confirmed.
-- Search sheet with hand-off rows.
+- Target extraction and signed URL logic. **Done.**
+- Long-press row, and viewer button if confirmed. **Done, device test pending.**
+- Search sheet with hand-off rows. **Done, device test pending.**
+
+Stale links are not refreshed until P2, so a very old message may fail in a browser hand-off.
 
 Acceptance:
 

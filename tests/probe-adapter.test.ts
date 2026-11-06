@@ -12,6 +12,7 @@ let onMessageSheet: (mod: unknown) => void
 let onViewerHeader: (exports: Record<string, unknown>) => void
 
 mock.module('@valenced/patcher', () => ({
+	instead: () => () => {},
 	before: (_: unknown, key: string, hook: Hook) => {
 		const patch = { key, hook, removed: false }
 		patches.push(patch)

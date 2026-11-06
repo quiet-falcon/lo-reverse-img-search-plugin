@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P0 foundation](https://img.shields.io/badge/status-P0%20foundation-orange)](#project-status)
+[![Status: P1 testing](https://img.shields.io/badge/status-P1%20testing-orange)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -14,7 +14,7 @@
 </div>
 
 > [!IMPORTANT]
-> This plugin is in early development and can't search images yet. The current production build is an empty plugin that proves the build and install path. There is no public release so far.
+> This plugin is in early development. The current build adds a **Search Image** row and browser hand-offs, which are still being tested on a device. In-app results aren't built yet, and there is no public release so far.
 
 ## Why it exists
 
@@ -26,8 +26,8 @@ This plugin takes a different route. It downloads the image with strict limits, 
 
 | Phase | Goal | Status |
 | --- | --- | --- |
-| **P0** | Foundation, build pipeline, and device probe | 🔶 Build passed, device test pending |
-| **P1** | Long-press entry and browser hand-offs | ⬜ Not started |
+| **P0** | Foundation, build pipeline, and device probe | ✅ Passed |
+| **P1** | Long-press entry and browser hand-offs | 🔶 Built, device test pending |
 | **P2** | Secure image pipeline and trace.moe results | ⬜ Not started |
 | **P3** | SauceNAO results and ranked merging | ⬜ Not started |
 | **P4** | Google Cloud Vision and the copy check | ⬜ Not started |
