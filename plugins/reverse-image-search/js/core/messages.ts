@@ -30,12 +30,27 @@ export const TierLabels: Record<Tier, string> = {
 	possible: 'Possible match',
 }
 
-export function visibleResults(results: ProviderResult[]) {
-	const shown = results.filter(
-		result => result.tier !== 'possible' && !result.adult,
-	)
+export function visibleResults(results: ProviderResult[], showWeak = false) {
+	const safe = results.filter(result => !result.adult)
+	const shown = showWeak
+		? safe
+		: safe.filter(result => result.tier !== 'possible')
 
-	return { shown, hidden: results.length - shown.length }
+	return {
+		shown,
+		hidden: results.length - shown.length,
+		weak: safe.length - safe.filter(r => r.tier !== 'possible').length,
+		adult: results.length - safe.length,
+	}
+}
+
+export function hiddenSummary(weak: number, adult: number, showWeak: boolean) {
+	const parts = [
+		!showWeak && weak ? `${weak} weaker` : '',
+		adult ? `${adult} adult` : '',
+	].filter(Boolean)
+
+	return parts.length ? `${parts.join(' and ')} hidden.` : ''
 }
 
 export const percent = (similarity: number) =>

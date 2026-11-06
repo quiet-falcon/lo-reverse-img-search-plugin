@@ -9,6 +9,7 @@ import { handoffChoices, openHandoff, openResult } from '../adapters/external'
 import { searchTraceMoe } from '../adapters/search'
 import {
 	ErrorMessages,
+	hiddenSummary,
 	percent,
 	StateMessages,
 	TierLabels,
@@ -182,15 +183,36 @@ function Outcome({ outcome }: { outcome: ProviderOutcome }) {
 			</Text>
 		)
 
-	const { shown, hidden } = visibleResults(outcome.results)
-	const quota =
+	return <Results outcome={outcome} />
+}
+
+function Results({
+	outcome,
+}: {
+	outcome: Extract<ProviderOutcome, { kind: 'results' }>
+}) {
+	const [showWeak, setShowWeak] = useState(false)
+	const { shown, weak, adult } = visibleResults(outcome.results, showWeak)
+	const footer = [
+		hiddenSummary(weak, adult, showWeak),
 		outcome.quotaLeft === undefined
 			? ''
-			: ` ${outcome.quotaLeft} free searches left today.`
+			: `${outcome.quotaLeft} free searches left today.`,
+	]
+		.filter(Boolean)
+		.join(' ')
+	const confident = shown.some(result => result.tier !== 'possible')
 
 	return (
 		<Stack spacing={8}>
-			{shown.length ? (
+			{!confident && (
+				<Text variant="text-sm/normal" color="text-muted">
+					No confident match. trace.moe only matches frames from anime episodes,
+					not manga, covers, fan art, or posters. Try a browser button for
+					those.
+				</Text>
+			)}
+			{shown.length > 0 && (
 				<ActionSheetRow.Group title="trace.moe results">
 					{shown.map((result, index) => (
 						<ActionSheetRow
@@ -198,6 +220,7 @@ function Outcome({ outcome }: { outcome: ProviderOutcome }) {
 							label={result.title}
 							subLabel={[
 								`${TierLabels[result.tier]}, ${percent(result.similarity)}`,
+								result.tier === 'possible' ? 'likely wrong' : '',
 								result.detail,
 							]
 								.filter(Boolean)
@@ -206,17 +229,22 @@ function Outcome({ outcome }: { outcome: ProviderOutcome }) {
 						/>
 					))}
 				</ActionSheetRow.Group>
-			) : (
-				<Text variant="text-sm/normal" color="text-muted">
-					No confident match. trace.moe only knows anime, so try a browser
-					button for other images.
+			)}
+			{weak > 0 && (
+				<ActionSheetRow.Group>
+					<ActionSheetSwitchRow
+						label="Show weaker matches"
+						subLabel="Below 90% similarity. trace.moe says these are usually wrong."
+						value={showWeak}
+						onValueChange={setShowWeak}
+					/>
+				</ActionSheetRow.Group>
+			)}
+			{footer && (
+				<Text variant="text-xs/normal" color="text-muted">
+					{footer}
 				</Text>
 			)}
-			<Text variant="text-xs/normal" color="text-muted">
-				{hidden
-					? `${hidden} weaker or adult results hidden.${quota}`
-					: quota.trim()}
-			</Text>
 		</Stack>
 	)
 }

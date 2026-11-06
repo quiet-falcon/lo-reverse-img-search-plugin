@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import { downloadCandidates } from '../plugins/reverse-image-search/js/core/acquire'
-import { visibleResults } from '../plugins/reverse-image-search/js/core/messages'
+import {
+	hiddenSummary,
+	visibleResults,
+} from '../plugins/reverse-image-search/js/core/messages'
 import { createSearchSession } from '../plugins/reverse-image-search/js/core/session'
 import {
 	scaledSize,
@@ -194,5 +197,20 @@ describe('visibleResults', () => {
 
 		expect(shown).toHaveLength(2)
 		expect(hidden).toBe(2)
+	})
+
+	test('shows weaker results on request but keeps adult ones hidden', () => {
+		const all = [result('exact'), result('possible'), result('possible', true)]
+		const { shown, weak, adult } = visibleResults(all, true)
+
+		expect(shown).toHaveLength(2)
+		expect(weak).toBe(1)
+		expect(adult).toBe(1)
+	})
+
+	test('summarises what is hidden', () => {
+		expect(hiddenSummary(3, 1, false)).toBe('3 weaker and 1 adult hidden.')
+		expect(hiddenSummary(3, 0, true)).toBe('')
+		expect(hiddenSummary(0, 0, false)).toBe('')
 	})
 })
