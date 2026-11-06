@@ -873,10 +873,7 @@ Work:
 - A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built.**
 - Community hits show distance, report count, and category, because there is no image to compare. **Built.**
 
-Setup Sensei must do, because this session can't reach repository settings:
-
-- Add the `BLOCKLIST_SIGNING_KEY` Actions secret, then send the public key for `ListPublicKey`.
-- Allow GitHub Actions to create pull requests.
+Setup done by Sensei on 2026-11-06: signing key created, public key added to `ListPublicKey`, and Actions allowed to create pull requests. Replacing the key needs a plugin update.
 
 Acceptance:
 

@@ -26,8 +26,9 @@ export interface CommunityMatch {
 	distance: number
 }
 
-// Empty until Sensei's signing key exists, which keeps updates switched off
-export const ListPublicKey = ''
+// Only signatures from the private key in GitHub Actions pass this check
+export const ListPublicKey =
+	'4dd1c91af7bd822f0e11e6f9486c5bb6c37f05706b4f052013ec712d5583e411'
 export const ListHost = 'raw.githubusercontent.com'
 export const ListBaseUrl = `https://${ListHost}/quiet-falcon/lo-reverse-img-search-plugin/community-list/`
 export const MaxEntries = 2000

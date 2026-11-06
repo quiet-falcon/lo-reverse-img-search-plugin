@@ -249,3 +249,14 @@ describe('syncCommunityList', () => {
 		expect(await syncCommunityList(0, raw)).toEqual({ kind: 'failed' })
 	})
 })
+
+describe('shipped public key', () => {
+	test('is a real curve point', () => {
+		const key = list.fromHex(list.ListPublicKey)
+		const signature = new Uint8Array(64)
+		signature[0] = 1
+
+		expect(key).toHaveLength(32)
+		expect(verifyEd25519(signature, text('x'), key)).toBe(false)
+	})
+})
