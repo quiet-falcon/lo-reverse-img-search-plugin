@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.8.0-alpha2",
+	"version": "0.9.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -513,7 +513,6 @@ For hand-offs, prefer the media proxy URL, because it returns a proper image typ
 | Provider response | 1 MiB |
 | Download timeout | 20 seconds |
 | Provider timeout | 30 seconds |
-| Result cache | 16 entries, memory only, 30-minute expiry |
 
 Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length` when headers arrive, abort in `onprogress` when over the limit, and check the final length again.
 
@@ -550,7 +549,6 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 | AI tag check | The file downloads from Discord only, and nothing goes to outside services |
 | My list | The image downloads from Discord only, and its hash and small thumbnail stay on the phone |
 | URL refresh | The attachment URL goes to Discord, as normal client traffic |
-| Result thumbnails | Your IP address goes to the host serving each thumbnail |
 
 Show a short notice on first use of each provider, and link `docs/privacy.md` from settings. Sensei asked for calm wording on 2026-11-06: the in-app notice says the provider "sees your connection details", and `docs/privacy.md` names the IP address plainly. Never promise that a provider deletes images, except where its terms say so. trace.moe's [terms](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/terms.md) say it does not keep search images, and that IP addresses are logged.
 
@@ -580,13 +578,14 @@ After setup, a normal search takes two taps from the long-press sheet: **Search 
 
 - Provider switches and key fields.
 - Default provider selection.
-- Entry point switches.
-- Minimum tier to show.
+- Entry point switches, one for each long-press row and one for the viewer button.
+- Minimum tier to show. Results below it stay behind **Show weaker matches**.
 - Adult content filter. Hide adult-flagged results by default, using SauceNAO `hidden` and trace.moe `anilist.isAdult`.
-- Result thumbnails on or off.
 - Live quota display where a provider reports it.
 - Privacy summary.
-- Clear keys and clear cached results.
+- Remove key.
+
+Results show no thumbnails and are not cached, so neither needs a setting.
 
 ### UI rules
 
@@ -914,6 +913,8 @@ Work:
 - Tune thresholds, finish settings, and complete accessibility checks.
 - Finish the README, privacy docs, and install guide.
 - Complete the device checklist on debug and production builds.
+
+The entry switches, minimum match, and adult filter are **Built**.
 
 Acceptance:
 

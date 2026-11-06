@@ -359,6 +359,16 @@ describe('Vision settings', () => {
 	})
 
 	test('keeps Vision consent across a reload', () => {
+		expect(readSettings({ minTier: 'best', hideAdult: 1 })).toMatchObject({
+			minTier: 'strong',
+			hideAdult: true,
+			entrySearch: true,
+			entryViewer: true,
+		})
+		expect(
+			readSettings({ minTier: 'exact', hideAdult: false, entryLinks: false }),
+		).toMatchObject({ minTier: 'exact', hideAdult: false, entryLinks: false })
+
 		const stored = readSettings({ consented: ['vision', 'unknown'] })
 
 		expect(stored.consented).toEqual(['vision'])

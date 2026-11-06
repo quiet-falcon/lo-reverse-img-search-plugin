@@ -80,6 +80,9 @@ mock.module('../plugins/reverse-image-search/js/ui/SearchSheet', () => ({
 	openSearchSheet: (targets: unknown) => opened.push(targets),
 }))
 
+const { bindSettings } = await import(
+	'../plugins/reverse-image-search/js/adapters/settings-store'
+)
 const { patchMessageSheet } = await import(
 	'../plugins/reverse-image-search/js/adapters/message-sheet'
 )
@@ -113,6 +116,7 @@ beforeEach(() => {
 	opened.length = 0
 	lookups.length = 0
 	storedUser = undefined
+	bindSettings({ cache: {} } as never)
 })
 
 describe('patchMessageSheet', () => {
@@ -146,6 +150,33 @@ describe('patchMessageSheet', () => {
 
 		expect(errors).toEqual([])
 		expect(tree.props.children).toHaveLength(2)
+	})
+
+	test('leaves out a row that is switched off', () => {
+		const tree = sheetTree()
+		bindSettings({ cache: { entrySearch: false } } as never)
+
+		runMessageSheet(
+			{ message: { ...message, content: 'https://a.example/' } },
+			tree,
+		)
+
+		const rows = tree.props.children[1] as {
+			props: { targets: unknown[]; domains: string[] }
+		}
+		expect(rows.props.targets).toEqual([])
+		expect(rows.props.domains).toEqual(['a.example'])
+	})
+
+	test('adds nothing when every row is switched off', () => {
+		const tree = sheetTree()
+		bindSettings({
+			cache: { entrySearch: false, entryProfile: false, entryLinks: false },
+		} as never)
+
+		runMessageSheet({ message }, tree)
+
+		expect(tree.props.children).toEqual(['group'])
 	})
 
 	test('adds nothing for a message without an image or author', () => {
@@ -210,6 +241,14 @@ describe('patchMediaViewer', () => {
 		expect(tree.props.children).toHaveLength(2)
 		tree.props.children[0]!.props.onPress()
 		expect(opened).toHaveLength(1)
+	})
+
+	test('adds no button when it is switched off', () => {
+		bindSettings({ cache: { entryViewer: false } } as never)
+
+		const { tree } = run({ source: { uri: Url } })
+
+		expect(tree.props.children).toHaveLength(1)
 	})
 
 	test('reports why the button is missing', () => {

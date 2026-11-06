@@ -34,9 +34,9 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | **P5** | Profile check: account age, avatars, banners, and AI tags | ✅ Passed |
 | **P6** | Local image hash list | ✅ Passed |
 | **P7** | Community hash list | ✅ Working. Report flow not tested |
-| **P8** | Link risk checks | 🧪 Built, needs device testing |
+| **P8** | Link risk checks | ✅ Passed |
 | **P9** | Crop and mirror search | ⏸️ Parked with Vision |
-| **P10** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
+| **P10** | Polish, full device testing, and `1.0.0` | 🧪 In progress |
 
 Each phase must pass before the next begins. Tested versions and evidence are recorded in [`docs/compatibility.md`](docs/compatibility.md).
 
@@ -121,7 +121,6 @@ These rules are built into the project:
 | Check Links | Your IP address, sent to GitHub for the scam list. Your links stay on your phone |
 | Report to community list | A public GitHub issue under your GitHub account, holding the image's fingerprint |
 | Link refresh | The attachment link, sent to Discord as normal client traffic |
-| Result thumbnails | Your IP address, sent to the host serving each thumbnail |
 
 A photo already online can lead to a page that names the person in it. That's how reverse image search works, so this plugin doesn't promise otherwise. See [`docs/privacy.md`](docs/privacy.md).
 
