@@ -808,6 +808,7 @@ Acceptance:
 - A paid Lens API with the user's own key.
 - An optional relay on Sensei's server.
 - A native Kotlin share path.
+- An AI-generated image check, requested by Sensei on 2026-11-06 for spotting fake profiles. Raise it once P4 passes. Show a likelihood with its limits, never a verdict like "fake person", and research which detection services are accurate enough first.
 
 Anything here needs its own evaluation, because it adds scraping, cost, a server, or a native build.
 
