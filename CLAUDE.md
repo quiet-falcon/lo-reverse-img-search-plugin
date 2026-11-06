@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.3.0-alpha2",
+	"version": "0.3.0-alpha3",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -763,7 +763,7 @@ Acceptance:
 
 Work:
 
-- Key settings, consent, SauceNAO provider, fusion, and quota display. **Done, device test pending.** The multipart body is built by hand in `core/multipart.ts`, so no temp file is written.
+- Key settings, consent, SauceNAO provider, fusion, and quota display. **Done.** The multipart body is built by hand in `core/multipart.ts`, so no temp file is written.
 
 Acceptance:
 
@@ -771,6 +771,8 @@ Acceptance:
 - Live remaining counts appear.
 - Rate-limit errors show a clear message and do not retry.
 - Keys never appear in logs, errors, or bundles.
+
+**P3 passed on 2026-11-06** with alpha2. Fan art returned an Exact SauceNAO match at 91.3% with the artist's name, and its source link opened. Rate limiting, quota display, merging, and key removal passed earlier. Keys stay out of logs and errors because the plugin logs nothing from provider calls, and no key is in the source.
 
 ### P4: Cloud Vision
 

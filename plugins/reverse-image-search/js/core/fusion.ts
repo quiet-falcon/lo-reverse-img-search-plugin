@@ -37,11 +37,15 @@ export function fuseResults(
 	const seen = new Set<string>()
 	const fused: ProviderResult[] = []
 	for (const { result } of ranked) {
-		const key = dedupeKey(result)
-		if (seen.has(key)) continue
-		seen.add(key)
+		// Mirrors of one post carry different links but read identically
+		const keys = [dedupeKey(result), lookKey(result)]
+		if (keys.some(key => seen.has(key))) continue
+		for (const key of keys) seen.add(key)
 		fused.push(result)
 	}
 
 	return fused
 }
+
+const lookKey = (result: ProviderResult) =>
+	`look|${result.provider}|${result.title}|${result.detail}|${result.similarity}`

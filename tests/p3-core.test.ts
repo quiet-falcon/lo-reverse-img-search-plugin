@@ -347,6 +347,32 @@ describe('fuseResults', () => {
 		expect(fused[0]?.similarity).toBe(0.99)
 	})
 
+	test('collapses rows that read the same but link to different copies', () => {
+		const copy = (url: string): ProviderResult => ({
+			provider: 'saucenao',
+			title: 'arknights',
+			detail: 'artist · Danbooru',
+			similarity: 0.913,
+			tier: 'exact',
+			adult: false,
+			url,
+		})
+		const fused = fuseResults(
+			{
+				saucenao: {
+					kind: 'results',
+					results: [
+						copy('https://danbooru.donmai.us/posts/1'),
+						copy('https://danbooru.donmai.us/posts/2'),
+					],
+				},
+			},
+			['saucenao'],
+		)
+
+		expect(fused).toHaveLength(1)
+	})
+
 	test('ignores failed providers', () => {
 		expect(
 			fuseResults(

@@ -121,6 +121,10 @@ Tested with `0.3.0-alpha1` (commit `f452b12`, dev build) on 2026-11-06.
 | Per-service status lines with quota | Passed |
 | Rate limit | Passed: fifth quick search showed the limit message and did not retry |
 | Remove key | Passed: button named trace.moe only |
-| Artwork returns a confident SauceNAO match | Not run yet |
+| Artwork returns a confident SauceNAO match | Passed with alpha2: fan art from Konachan matched at 91.3%, with artist and site. The Danbooru source page opened, though the site was down for maintenance |
 
 Untitled Twitter results showed "Twitter" as the title, and one site showed as "Anime*". alpha2 names them "<author> on <site>" and drops the asterisk.
+
+alpha2 showed the same SauceNAO post twice, as two mirrors with different links. alpha3 also collapses rows that read identically.
+
+**P3 passed on 2026-11-06.**
