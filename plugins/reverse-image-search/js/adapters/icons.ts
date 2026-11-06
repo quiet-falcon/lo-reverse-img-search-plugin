@@ -1,10 +1,15 @@
 import { lookupGeneratedIconComponent } from '@valenced/utils/discord'
 
-// Icon names vary between Discord builds, so a miss only drops the icon
+const SearchIconNames = ['MagnifyingGlassIcon', 'SearchIcon']
+
+// Extra arguments name one icon's assets, so each fallback needs its own lookup
 export function searchIcon() {
-	try {
-		return lookupGeneratedIconComponent('MagnifyingGlassIcon', 'ImageIcon')
-	} catch {
-		return undefined
+	for (const name of SearchIconNames) {
+		try {
+			const Icon = lookupGeneratedIconComponent(name)
+			if (Icon) return Icon
+		} catch {
+			// Try the next name
+		}
 	}
 }

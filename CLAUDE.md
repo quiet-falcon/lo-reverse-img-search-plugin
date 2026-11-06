@@ -150,7 +150,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.1.0-alpha4",
+	"version": "0.1.0-alpha5",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -217,7 +217,7 @@ P0 run on 2026-11-06:
 
 | Step | Result |
 | --- | --- |
-| `bun run verify` | **Passed:** lint, type-check, 72 tests, build |
+| `bun run verify` | **Passed:** lint, type-check, 73 tests, build |
 | Pinned install and `--frozen-lockfile` | **Passed** on GitHub Actions against real GitHub, and `bun.lock` did not change |
 | Gradle packaging | **Passed** on GitHub Actions for production and probe ZIPs, with no token |
 | Hand-built probe ZIP | **Passed** `generate-index`, with `manifest.json` and `index.js` at its root |
@@ -321,7 +321,7 @@ Providers build plain request data and parse plain text. Only `adapters/http.ts`
 - `message-sheet.tsx`: Adds the long-press row.
 - `media-viewer.tsx`: Adds the viewer button.
 - `external.ts`: Lists hand-offs and opens them. Keeps provider URLs out of the UI.
-- `icons.ts`: Finds the search icon, with a fallback.
+- `icons.ts`: Finds the search icon, with a fallback. [S] `lookupGeneratedIconComponent` treats extra arguments as one icon's asset names, so each fallback name needs its own call.
 
 ### Search states
 

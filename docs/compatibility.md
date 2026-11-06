@@ -58,6 +58,8 @@ Tested with alpha3 on 2026-11-06, using a signed attachment image. trace.moe now
 | PNG uploaded from the phone, through Lens | Passed |
 | Video message shows no row | Passed |
 | Plugin off removes the row | Passed |
-| Spoiler image | Search worked before reveal. Preview hiding not yet confirmed |
-| Link preview from a Google image link | Failed on both links. Cause not yet known |
-| Viewer button | Failed: no button appeared. Alpha4 reports why |
+| Spoiler image | Passed: preview stayed hidden until tapped, and search worked |
+| Link preview | Passed with a direct link. A Google search page link has no image to search |
+| Viewer button | Failed on alpha4: button slot found, icon lookup failed. Fixed in alpha5, device test pending |
+
+Alpha4 confirmed trace.moe works on the original link without the switch.

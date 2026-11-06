@@ -52,8 +52,15 @@ mock.module('@valenced/discord/utils/modules/finders', () => ({
 		return subscribe()
 	},
 }))
+const lookups: string[][] = []
 mock.module('@valenced/utils/discord', () => ({
-	lookupGeneratedIconComponent: () => () => null,
+	// Like the host, a call with several names wants all of them as one icon
+	lookupGeneratedIconComponent: (...names: string[]) => {
+		lookups.push(names)
+		return names.length === 1 && names[0] === 'SearchIcon'
+			? () => null
+			: undefined
+	},
 }))
 mock.module('../plugins/reverse-image-search/js/ui/SearchSheet', () => ({
 	openSearchSheet: (targets: unknown) => opened.push(targets),
@@ -90,6 +97,7 @@ beforeEach(() => {
 	hooks.length = 0
 	subscriptions.length = 0
 	opened.length = 0
+	lookups.length = 0
 })
 
 describe('patchMessageSheet', () => {
@@ -177,6 +185,13 @@ describe('patchMediaViewer', () => {
 		hooks.at(-1)!.hook([{ source: { uri: Url } }], () => tree)
 
 		expect(statuses).toEqual(['no button slot'])
+	})
+
+	test('looks up each icon name on its own', () => {
+		run({ source: { uri: Url } })
+
+		expect(lookups.every(names => names.length === 1)).toBe(true)
+		expect(lookups.flat()).toContain('SearchIcon')
 	})
 
 	test('adds nothing for a video', () => {
