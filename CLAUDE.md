@@ -745,9 +745,9 @@ This phase is the first useful release candidate.
 
 Work:
 
-- URL refresh, bounded download, and sniffing. **Done, device test pending.** trace.moe takes raw bytes, so no temp file is written.
+- URL refresh, bounded download, and sniffing. **Done.** trace.moe takes raw bytes, so no temp file is written.
 - Session state machine. **Done.**
-- trace.moe provider and basic results sheet. **Done, device test pending.**
+- trace.moe provider and basic results sheet. **Done.**
 
 Acceptance:
 
@@ -756,6 +756,8 @@ Acceptance:
 - An over-limit file aborts before upload.
 - A non-image is rejected with a clear message.
 - Cancelling aborts the request and shows no late result.
+
+**P2 passed on 2026-11-06** with alpha2. An anime frame returned an Exact match at 99.2%, and old images, PNG, GIF, and cancel all worked. Over-limit and non-image handling are covered by automated tests only.
 
 ### P3: SauceNAO and fusion
 
@@ -872,11 +874,11 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 7 | Exact attachment, embed, and video fields | Attachment and embed passed, video gate P1 | Update `target.ts` |
 | 8 | Which hand-off engines accept signed Discord URLs? | Passed: all 8, with trace.moe on the original link | Hide failing engines |
 | 9 | Do proxy URLs fix the old `octet-stream` failure? | Passed for 7 engines and a phone PNG in Lens | Use original URLs or in-app providers |
-| 10 | Does `format=jpeg` work on the media proxy? | P2 | Use PNG, then the original |
+| 10 | Does `format=jpeg` work on the media proxy? | Open: searches work, step not recorded | Use PNG, then the original |
 | 11 | Does a video URL return a still frame? | P2 | Disable video search |
-| 12 | Do binary XHR and progress events work? | P2, device test pending | Use `fetch` with `Content-Length` and declared size checks |
-| 13 | Does a raw `Uint8Array` XHR body upload work on the device? | P2, device test pending | Use `FileModule` and multipart, then re-evaluate |
-| 14 | Do providers accept uploads from the phone's network? | P2 | Show the provider error and keep hand-offs |
+| 12 | Do binary XHR and progress events work? | Passed, 2026-11-06 | Use `fetch` with `Content-Length` and declared size checks |
+| 13 | Does a raw `Uint8Array` XHR body upload work on the device? | Passed, 2026-11-06 | Use `FileModule` and multipart, then re-evaluate |
+| 14 | Do providers accept uploads from the phone's network? | Passed for trace.moe | Show the provider error and keep hand-offs |
 | 15 | SauceNAO limits and keyless behaviour | P3 | Keep the key required |
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |
 | 17 | Vision REST shape and billing requirement | P4 | Keep Vision off, or drop it |

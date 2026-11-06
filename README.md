@@ -5,7 +5,7 @@
 **Find where a Discord image came from, without leaving Discord.**
 
 [![Validate](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml/badge.svg)](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/workflows/validate.yml)
-[![Status: P2 in progress](https://img.shields.io/badge/status-P2%20in%20progress-orange)](#project-status)
+[![Status: P3 next](https://img.shields.io/badge/status-P3%20next-blue)](#project-status)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 [![Platform: Valenced](https://img.shields.io/badge/platform-Valenced-blue)](https://github.com/Valenced/valenced)
 
@@ -14,7 +14,7 @@
 </div>
 
 > [!IMPORTANT]
-> This plugin is in early development. The current build adds a **Search Image** row, a viewer button, and browser hand-offs to 8 engines. In-app anime results from trace.moe are being tested, and there is no public release so far.
+> This plugin is in early development. The current build adds a **Search Image** row, a viewer button, and browser hand-offs to 8 engines. In-app anime results from trace.moe work on a real device. There is no public release so far.
 
 ## Why it exists
 
@@ -28,7 +28,7 @@ This plugin takes a different route. It downloads the image with strict limits, 
 | --- | --- | --- |
 | **P0** | Foundation, build pipeline, and device probe | ✅ Passed |
 | **P1** | Long-press entry and browser hand-offs | ✅ Passed |
-| **P2** | Secure image pipeline and trace.moe results | 🔶 Built, device test pending |
+| **P2** | Secure image pipeline and trace.moe results | ✅ Passed |
 | **P3** | SauceNAO results and ranked merging | ⬜ Not started |
 | **P4** | Google Cloud Vision and the copy check | ⬜ Not started |
 | **P5** | Polish, full device testing, and `1.0.0` | ⬜ Not started |
@@ -176,7 +176,6 @@ Read [`CLAUDE.md`](CLAUDE.md) first. It holds the architecture, rules, test plan
 - Discord can change its internal modules at any time.
 - Providers can change their limits or stop service.
 - No search method finds every image.
-- Live provider searches and phone installs are still unverified.
 
 ## Acknowledgements
 

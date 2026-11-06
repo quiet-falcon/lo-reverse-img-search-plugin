@@ -67,3 +67,34 @@ Alpha4 confirmed trace.moe works on the original link without the switch.
 IQDB can queue for a long time under load. The page showed the image fetched in under a second, so the delay is on IQDB's side.
 
 **P1 passed on 2026-11-06.**
+
+## P2 results
+
+Tested with `0.2.0-alpha2` (commit `890eae2`, dev build) on 2026-11-06, same device and versions as above.
+
+| Check | Result |
+| --- | --- |
+| Anime frame, in-app trace.moe, no key | Passed: Exact match, 99.2%, title, episode, and time shown |
+| Result opens AniList | Passed |
+| Manga cover | Passed: no confident match, weaker guesses hidden, quota shown |
+| Show weaker matches switch | Passed: possible matches shown with "likely wrong", adult result stays hidden |
+| Cancel a search | Passed: no late result |
+| Image older than a day, link refresh | Passed |
+| PNG and GIF | Passed |
+| Viewer button | Passed: probe shows `button added` |
+| Over-limit file aborts before upload | Automated tests only. Device not run |
+| Non-image rejected with a clear message | Automated tests only. Device not run |
+
+Gates closed by these runs:
+
+| # | Question | Status |
+| --- | --- | --- |
+| 12 | Binary XHR responses work | Passed: downloads reached the byte check |
+| 13 | Raw `Uint8Array` XHR upload works | Passed: trace.moe returned results |
+| 14 | Providers accept uploads from the phone's network | Passed for trace.moe, on 4G |
+| 10 | `format=jpeg` on the media proxy | Not proven. Searches worked, but the plugin does not record which download step succeeded |
+| 11 | Video still frames | Not run. Video stays out of search targets |
+
+trace.moe often returns the same scene several times, a few seconds apart. P3's fusion step dedupes them.
+
+**P2 passed on 2026-11-06.**
