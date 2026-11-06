@@ -128,3 +128,12 @@ Untitled Twitter results showed "Twitter" as the title, and one site showed as "
 alpha2 showed the same SauceNAO post twice, as two mirrors with different links. alpha3 also collapses rows that read identically.
 
 **P3 passed on 2026-11-06.**
+
+## Pre-P4 link checks
+
+Run by Sensei on 2026-11-06 from his browser.
+
+| # | Check | Result |
+| --- | --- | --- |
+| 24 | TinEye site honours `sort=crawl_date&order=asc` | Passed: results sorted oldest first |
+| 25 | Wayback CDX returns the earliest capture | Passed: `example.com` returned `20020120142510`, which is 20 Jan 2002 |

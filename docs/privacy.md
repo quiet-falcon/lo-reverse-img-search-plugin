@@ -23,3 +23,16 @@ Dev builds keep version numbers, sheet keys, and field names in memory. They nev
 ## API keys
 
 Your SauceNAO key is stored as plain text in this plugin's settings file on your phone. Other plugins may be able to read it, because plugins share Discord's process. The key is only ever sent to `saucenao.com`, and is never logged.
+
+## Planned network hosts
+
+These hosts are for later phases and aren't contacted yet. This list is updated before any phase ships.
+
+| Phase | Host | What it receives |
+| --- | --- | --- |
+| P5 | `web.archive.org` | Addresses of pages Vision found, plus your IP address |
+| P5 | `cdn.discordapp.com` | Avatar and banner requests, plus your IP address |
+| P7 | `quiet-falcon.github.io` | A request for the community list, plus your IP address |
+| P8 | RDAP services | Domains found in a message, plus your IP address |
+
+The plugin never reads or shows GPS or location fields.

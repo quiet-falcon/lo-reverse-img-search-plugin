@@ -29,15 +29,13 @@ This repository builds a reverse image search (RIS) plugin for [Valenced](https:
 - It uses documented APIs for in-app results, so routine Discord or website changes are less likely to break it.
 - It needs no server, no scraping, and no native build.
 
-Rejected for v1: link launcher only, SauceNAO only, paid Lens APIs, Vision only, on-device HTML scraping, a Vulture relay, and native Kotlin. Section 13 lists what may return later.
+**What it finds:** where an image or its copies appear, plus signals about the image, the account, and its links. A photo already on the web can lead to a page that names whoever is in it, so never claim the plugin cannot reveal an identity.
 
-**What it finds:** where an image, or a close copy of it, appears. It matches pictures, not people. A photo already on the web can lead to a page that names whoever is in it, so never claim the plugin cannot reveal an identity. It simply does not look for a person's other photos.
-
-**Main use cases:** finding the source of art, anime, and memes, and checking whether a profile photo is copied from elsewhere. Section 8 covers that copy check.
+**Main use cases:** finding the source of art, anime, and memes, checking whether a profile photo is copied from elsewhere, and spotting scam and fake profiles. Section 8 covers the copy check, and section 13 covers the profile check.
 
 ## 2. Hard rules
 
-- Every search starts from a user tap. Nothing is sent automatically or in the background.
+- Image uploads to outside services start from a user tap. Local checks and list updates can run on their own.
 - The UI names every provider before any image leaves the device.
 - Send the image only to providers selected for that search. Never add a provider as a silent fallback.
 - API keys live in plugin settings only. Never hard-code, log, or commit them.
@@ -45,8 +43,8 @@ Rejected for v1: link launcher only, SauceNAO only, paid Lens APIs, Vision only,
 - Every patch, listener, timer, in-flight request, and open sheet is cleaned up on stop.
 - Do not invent Valenced or Discord APIs. Unverified means labelled and gated.
 - No face-recognition engines, such as PimEyes, FaceCheck.ID, or Search4Faces.
-- No telemetry, analytics, or hidden network calls.
-- No bulk scanning of channels, no background indexing, and no self-bot behaviour.
+- No telemetry or analytics. Every network host is listed in `docs/privacy.md`.
+- No self-bot behaviour.
 
 ## 3. Verified platform baseline
 
@@ -164,8 +162,6 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 ```json
 { "extends": "../../tsconfig.base.json" }
 ```
-
-Do not add `dist.android`. Do not depend on `valenced.api.hidden`.
 
 ## 6. Commands
 
@@ -366,7 +362,7 @@ Show a picker when a message has more than one image. Spoilered images stay blur
 | --- | --- | --- | --- | --- | --- |
 | trace.moe | On | None | Anime screenshots | `POST https://api.trace.moe/search?anilistInfo&cutBorders`, raw image bytes with the sniffed `Content-Type` | [S] [Docs](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/docs.md), [limits](https://github.com/soruly/trace.moe-api/blob/1b64f4b8ceca8b9e3b4cbe7f6479603e61bff2b6/docs/limits.md) |
 | SauceNAO | On when a key exists | Free | Art, manga, booru | `POST https://saucenao.com/search.php`, query `output_type=2`, `api_key`, `db=999`, `numres=8`, `hide`, multipart field `file` | [C] [PicImageSearch](https://github.com/kitUIN/PicImageSearch/blob/784713e546273a09aae4b247a8b6f798825efafa/PicImageSearch/engines/saucenao.py) |
-| Cloud Vision Web Detection | Off | Your own Google Cloud key | Photos, memes, screenshots, products | `POST https://vision.googleapis.com/v1/images:annotate`, feature `WEB_DETECTION`, base64 image | Fields [S], [pricing](https://cloud.google.com/vision/docs/pricing?hl=es) [S], [size limits](https://docs.cloud.google.com/vision/docs/supported-files) [S], REST shape [A, gate P4] |
+| Cloud Vision Web Detection | Off | Your own Google Cloud key | Photos, memes, screenshots, products | `POST https://vision.googleapis.com/v1/images:annotate`, header `x-goog-api-key`, features `WEB_DETECTION` and `TEXT_DETECTION`, base64 image | [Request and response](https://docs.cloud.google.com/vision/docs/detecting-web) [S], [key header](https://docs.cloud.google.com/docs/authentication/api-keys-use) [S], [pricing](https://cloud.google.com/vision/docs/pricing?hl=es) [S], [size limits](https://docs.cloud.google.com/vision/docs/supported-files) [S], live call [A, gate P4] |
 
 Provider facts:
 
@@ -378,9 +374,10 @@ Provider facts:
 - [C] SauceNAO reports `short_remaining`, `long_remaining`, and `minimum_similarity` in its response header. Show those live values. Do not hard-code limits.
 - [C] Secondary sources report 150 searches a day and 4 per 30 seconds for free keys. Device run on 2026-11-06: the fifth quick search was rate limited, and `long_remaining` read 94 then 92 after a few searches, which suggests 100 a day for this key. Keep showing the live value.
 - [A, gate P3] Whether SauceNAO JSON works without a key. Until proven, API mode requires a key and hand-off still works.
-- [S] Vision pricing: first 1,000 Web Detection units a month are free, then US$3.50 per 1,000.
+- [S] Vision pricing: each feature on an image is one unit. Web Detection's first 1,000 units a month are free, then US$3.50 per 1,000. Text Detection's first 1,000 are free, then US$1.50 per 1,000.
 - [S] Vision limits: 20 MB per image and 10 MB per JSON request.
-- [A, gate P4] Vision keys may require billing on the Google Cloud project.
+- [S] The Vision API and billing must both be enabled on the Google Cloud project.
+- [S] `pageTitle` can contain HTML tags, so strip them before showing it.
 - [S] Web Detection returns lists only: `fullMatchingImages`, `partialMatchingImages`, `pagesWithMatchingImages`, `visuallySimilarImages`, `webEntities`, and `bestGuessLabels`. It has no total-count field.
 
 Research limit: no live provider call has been made yet, and SauceNAO's official API page could not be reached. Its contract above comes from a maintained client library. Confirm it before relying on it.
@@ -396,7 +393,7 @@ URL templates are taken from [Vencord's plugin](https://github.com/Vendicated/Ve
 | Google Lens | `https://lens.google.com/uploadbyurl?url=` |
 | Yandex | `https://yandex.com/images/search?rpt=imageview&url=` |
 | Bing | `https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:` |
-| TinEye | `https://www.tineye.com/search?url=` |
+| TinEye | `https://www.tineye.com/search?url=<image>&sort=crawl_date&order=asc` |
 | SauceNAO | `https://saucenao.com/search.php?url=` |
 | IQDB | `https://iqdb.org/?url=` |
 | trace.moe | `https://trace.moe/?url=` |
@@ -429,17 +426,16 @@ Evidence: [Vision fields](https://docs.cloud.google.com/dotnet/docs/reference/Go
 | Several | 5 to 19 | Found on several sites |
 | Wide | 20 or more | Widely used online |
 
-Band limits are starting values. [A, gate P5] Tune them with real results.
+Band limits are starting values. [A, gate P10] Tune them with real results.
 
 **Free route.** TinEye shows a total match count at the top of its page and can sort by oldest, so its hand-off row says **See total and oldest copy**. Lens is the second choice.
 
 Display rules:
 
 - Show the band and counts first. Keep the page list behind a **Show pages** tap.
-- Do not show `webEntities` or `bestGuessLabels` in this mode.
-- Never use the words stolen, fake, scammer, or safe. The plugin can't know any of those.
-- Always show this line: "Copies don't prove who owns a photo. No copies doesn't prove it's real."
-- On a result of None, add that new, private, and AI-generated photos can have no copies.
+- Show `webEntities`, `bestGuessLabels`, and any text Vision reads in the image, such as a watermark or a handle.
+- Say what a result is based on, like "Matches a reported scam avatar".
+- Keep limits behind one **What this means** tap: copies don't prove who owns a photo, no copies doesn't prove it's real, and new, private, and AI-generated photos can have no copies.
 - Label oldest dates as when an engine first found the image, not when it was made.
 
 ### Result ranking
@@ -452,7 +448,7 @@ Provider scores are not comparable, so do not average them.
 | Strong | 0.90 to below 0.97 | 70 to below 90 | Partial matching image |
 | Possible | Hidden by default below 0.90 | Above provider minimum, below 70 | Visually similar image |
 
-Thresholds are starting values. [A, gate P5] Tune them with the test set.
+Thresholds are starting values. [A, gate P10] Tune them with the test set.
 
 Rules:
 
@@ -558,8 +554,6 @@ To check a profile photo, tap **Check copies with Google Vision** instead at ste
 
 After setup, a normal search takes two taps from the long-press sheet: **Search Image**, then **Search**.
 
-Hand-off rows open one provider each. Do not add an "open all" action.
-
 ### Settings
 
 - Provider switches and key fields.
@@ -646,7 +640,7 @@ Run with `bun run test`. Tests never touch Discord, real accounts, or real provi
 | Limits | Oversized `Content-Length`, missing length, over-limit progress, oversized final body |
 | Providers | Valid results, empty results, malformed JSON, 401, 402, 403, 404, 413, 429, 503 |
 | Fusion | Tier rules, dedupe, ordering, adult filtering, unsafe URL rejection |
-| Copy check | Band edges, hostname dedupe, exact and partial counts, capped lists, similar images ignored, empty results, banned words absent |
+| Copy check | Band edges, hostname dedupe, exact and partial counts, capped lists, similar images ignored, empty results |
 | Session | Double taps, cancel in each stage, stop during request, late callbacks, partial failure |
 | Settings | Defaults, malformed values, old versions, failed writes |
 | Redaction | Signed URLs, keys, filenames, and nested errors removed |
@@ -778,8 +772,10 @@ Acceptance:
 
 Work:
 
-- Verify the REST contract, then add Vision as an opt-in provider.
+- Add Vision as an opt-in provider, and verify the documented contract with a live call.
 - Add the copy check and its TinEye fallback.
+- Add `TEXT_DETECTION`, so watermarks and baked-in handles show without an OCR library. This replaces the corner-edge watermark heuristic.
+- Add short use labels to the hand-off rows, and open TinEye sorted by oldest.
 
 Acceptance:
 
@@ -788,15 +784,101 @@ Acceptance:
 - Fully matching pages rank above visually similar images.
 - A photo or meme returns useful in-app results.
 - A widely used test image shows the right band, with counts written as "at least".
-- A freshly taken test photo shows No copies found, with the warning line.
-- No result in copy check mode labels a photo stolen, fake, or safe.
+- A freshly taken test photo shows No copies found, and **What this means** explains the limits.
+- An image with a visible watermark shows its text.
 
-### P5: Polish and release
+### P5: Profile check
+
+Reports signals about an image, an account, and its links. Signals sit in their own strip, separate from `fusion.ts`, which only ranks search results.
+
+Work:
+
+- `core/signals.ts`, `ui/SignalStrip.tsx`, and `ui/SignalRow.tsx`.
+- A **Check Profile** row in the long-press message sheet, using the message author. A profile sheet entry can follow once a probe finds it.
+- Account age in `core/account-age.ts`: `Math.floor(Number(id) / 4194304) + 1420070400000`. [S] [Discord docs](https://docs.discord.com/developers/reference). Dividing keeps this accurate without BigInt.
+- Avatar and banner targets in `adapters/profile.ts`, using `.png?size=` on Discord's CDN. Skip default avatars.
+- Run the copy check on avatars and banners.
+- Wayback first capture in `providers/wayback.ts`, for the top matching pages: `https://web.archive.org/cdx/search/cdx?url=<page>&output=json&limit=1`. Label it "page first archived", because it dates the page rather than the image.
+- A mismatch signal when a matching page was archived before the account existed.
+- AI check, in two layers:
+  - Local tags, such as C2PA or Stable Diffusion `parameters` text. [A, gate P5] Test what survives Discord's upload first.
+  - A SynthID browser row. A hit is strong, and a miss means nothing.
+- Never read or show GPS or location fields.
+
+Sightengine was scrapped on 2026-11-06, so there is no AI score provider. New AI detection needs Sensei's approval.
+
+Acceptance:
+
+- A message author's account age shows with no network call.
+- Avatar and banner copy checks work on a real profile.
+- A matching page older than the account shows the mismatch signal.
+- Every signal has a text label and an icon.
+
+### P6: Local hash list
+
+Work:
+
+- `core/pdq.ts` and `core/pixels.ts`: PDQ 256-bit hash, quality score, mirror hashes, and distance, in pure TypeScript.
+- Hash a small PNG from Discord, so one decoder covers every format and the JS thread stays free.
+- One-tap **Save to my list**, kept on the device with a private thumbnail for side-by-side comparison.
+- Start at distance 30 or less and quality 50 or more. [A, gate P10] Tune these with real images.
+
+Findings from 2026-11-06, on a small stock image set: 64-bit pHash missed mirrors, and neither hash handled crops. This list catches reused images, while Vision's partial matches cover crops.
+
+Acceptance:
+
+- TypeScript hashes match `pdqhash` reference hashes in tests.
+- A recompressed, resized, and mirrored copy of a saved image matches.
+- Flat, low-detail images are rejected by the quality score.
+- Hashing doesn't visibly freeze the app on the Motorola G40s.
+
+### P7: Community list
+
+Work:
+
+- Entries in `blocklist/`, holding hashes, categories, and report counts, never images.
+- `publish-blocklist.yml`, publishing a compact list to Pages with a real Ed25519 signature. The private key stays in Actions, and the public key ships in the plugin.
+- `adapters/blocklist-sync.ts`: checks a small version file at most daily, then fetches, verifies, and stores the list.
+- A **Report** button that opens a prefilled GitHub issue. An Action turns it into a PR, and Sensei approves it.
+- Community hits show distance, report count, and category, because there is no image to compare.
+
+Acceptance:
+
+- Gate 19 passes.
+- A tampered list is rejected.
+- A false-match entry can be removed through the same PR flow.
+
+### P8: Link risk
+
+Work:
+
+- `core/link-risk.ts`: URL extraction, known phishing domains, lookalike scoring, and `xn--` detection.
+- Mirror a maintained phishing list into the Pages file, so the plugin only contacts one list host. Discord-AntiScam was archived on 2026-10-15, so check any list's activity and licence first.
+- Optional RDAP domain age. [S] rdap.org allows 10 requests in 10 seconds and redirects to each registry, so `http.ts` needs an RDAP-only redirect rule.
+
+Acceptance:
+
+- A known phishing domain and a lookalike of `discord.com` are both flagged.
+- Normal Discord and Steam links are not flagged.
+
+### P9: Crop and mirror search
+
+Work:
+
+- A region picker that crops or mirrors an image, then sends it to in-app providers.
+- Browser hand-offs can't take crops, because a crop has no public link.
+
+Acceptance:
+
+- A background crop can find a page the full image missed.
+- The UI says each search uses one Vision unit.
+
+### P10: Polish and release
 
 Work:
 
 - Tune thresholds, finish settings, and complete accessibility checks.
-- Write the README, privacy docs, and install guide.
+- Finish the README, privacy docs, and install guide.
 - Complete the device checklist on debug and production builds.
 
 Acceptance:
@@ -805,23 +887,15 @@ Acceptance:
 - Upgrade from the previous candidate works.
 - `1.0.0` is published and installs from the public index.
 
-### Later, only with Sensei's approval
+### Ideas for later
 
 - IQDB in-app parsing.
 - Upload-then-open for Lens and Yandex, using endpoints seen in PicImageSearch. These are undocumented.
 - A paid Lens API with the user's own key.
 - An optional relay on Sensei's server.
 - A native Kotlin share path.
-- **Profile check**, requested by Sensei on 2026-11-06 for spotting scam and fake profiles. Raise it once P4 passes. It reports signals about an image and an account, never who someone is:
-  - Avatar entry point: run the copy check and AI check on a user's profile picture.
-  - AI-generated likelihood. Research which detection services are accurate enough first. Show a likelihood with its limits.
-  - Metadata scan: camera, editing software, and AI-generator tags such as C2PA or Stable Diffusion `parameters` text. Never read or show GPS or location fields. [A] Discord is reported to strip most metadata on upload, so test what survives before relying on it.
-  - Account age from the user ID. [S] [Discord docs](https://docs.discord.com/developers/reference): `(snowflake >> 22) + 1420070400000` gives milliseconds.
-  - Mismatch flag: the image was online before the account existed.
-  - Same wording rules as the copy check: signals and limits, never stolen, fake, scammer, or safe.
-- No face recognition, as section 2 says. The profile check matches images and reads account signals, not faces.
 
-Anything here needs its own evaluation, because it adds scraping, cost, a server, or a native build.
+No face recognition, as section 2 says.
 
 ## 14. Release process
 
@@ -857,7 +931,7 @@ Valenced repositories are static. [S] `index.json` lists versions, URLs, SHA-256
 
 Repository URL: `https://quiet-falcon.github.io/lo-reverse-img-search-plugin/index.json`
 
-Enable Pages for the pool branch. [A, gate P5] Confirm that a push from the workflow actually updates the live site. If it does not, add an explicit Pages deployment job.
+Enable Pages for the pool branch. [A, gate P7] Confirm that a push from the workflow actually updates the live site. If it does not, add an explicit Pages deployment job.
 
 ### Rollback
 
@@ -884,12 +958,18 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | 15 | SauceNAO limits and keyless behaviour | Partly passed: limited after 5 quick searches, daily count fell 94 to 92. Keyless still untested | Keep the key required |
 | 16 | SauceNAO `hide` meaning | P3 | Filter locally using `hidden` |
 | 17 | Vision REST shape and billing requirement | P4 | Keep Vision off, or drop it |
-| 18 | Do thresholds match real results? | P5 | Retune them |
-| 19 | Does the Pages update run from the release workflow? | P5 | Add a deployment job |
+| 18 | Do thresholds match real results? | P10 | Retune them |
+| 19 | Does the Pages update run from the release workflow? | P7 | Add a deployment job |
 | 20 | Can Termux run the build tools? | Optional | Keep building in CI and WSL2 |
 | 21 | Does `maxResults` raise Web Detection's list sizes? | P4 | Use the default size and keep "at least" wording |
 | 22 | Does a TinEye hand-off open with Discord's signed URL? | Passed | Use the media proxy URL or Lens |
 | 23 | Does a hand-built multipart upload reach SauceNAO from the phone? | Passed, 2026-11-06 | Write a temp file and use `FormData` with its URI, as PetPet does |
+| 24 | Does TinEye's site honour `sort=crawl_date&order=asc`? | Passed, 2026-11-06 | Keep the plain link |
+| 25 | Does Wayback's CDX API return the earliest capture? | Passed, 2026-11-06 | Drop the mismatch signal |
+| 26 | Which metadata survives Discord's upload? | P5 | Drop local tag checks |
+| 27 | Does the Valenced CLI bundle npm packages such as `upng-js`? | P6 | Vendor the decoder |
+| 28 | Is PDQ fast enough on the phone? | P6 | Use a smaller image, or hash in slices |
+| 29 | Does the device have `crypto.subtle`? | P7 | Bundle a JS Ed25519 and SHA implementation |
 
 Limitations already known:
 
