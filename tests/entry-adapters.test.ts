@@ -73,6 +73,9 @@ mock.module('@valenced/utils/discord', () => ({
 			: undefined
 	},
 }))
+mock.module('../plugins/reverse-image-search/js/ui/LinkSheet', () => ({
+	openLinkSheet: () => {},
+}))
 mock.module('../plugins/reverse-image-search/js/ui/SearchSheet', () => ({
 	openSearchSheet: (targets: unknown) => opened.push(targets),
 }))

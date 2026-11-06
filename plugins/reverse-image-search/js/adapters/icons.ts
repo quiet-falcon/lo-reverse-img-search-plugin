@@ -22,5 +22,6 @@ function firstIcon(names: string[]) {
 
 export const searchIcon = () => firstIcon(SearchIconNames)
 export const profileIcon = () => firstIcon(ProfileIconNames)
+export const linkIcon = () => firstIcon(['LinkIcon', ...ProfileIconNames])
 export const signalIcon = (level: SignalLevel) =>
 	firstIcon(SignalIconNames[level])

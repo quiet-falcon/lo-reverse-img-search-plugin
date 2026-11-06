@@ -221,13 +221,26 @@ Tested with `0.7.0-alpha1` (commit `6bc8dc8`) on 2026-11-06, Discord 352.6 canar
 | Plugin code verifies the published list, and rejects a changed message | Passed off device |
 | Update community list on the phone | Passed, reported by Sensei |
 | Second update says already up to date | Passed, screenshot: 0.2 seconds |
-| Report becomes a PR | Not run |
-| Merged report reaches the phone and matches | Not run |
-| False entry can be removed | Not run |
+| Report becomes a PR | Not run: skipped by Sensei |
+| Merged report reaches the phone and matches | Not run: skipped by Sensei |
+| False entry can be removed | Not run: skipped by Sensei |
 
 Gates closed by this run:
 
 | # | Question | Status |
 | --- | --- | --- |
 | 32 | Does BigInt work on the phone, and how long does a signature check take? | Passed: a full check, including the network, took 0.2 seconds. The signature is verified before the version is compared |
+
+## P8 device checks
+
+Built as `0.8.0-alpha1`. These have not been run on a device yet.
+
+| Check | Result |
+| --- | --- |
+| Check Links row shows only on messages with links | Not run |
+| Listed scam domain is flagged | Not run |
+| Lookalike is flagged | Not run |
+| Real Discord link is not flagged | Not run |
+| Unrelated link shows no known risks | Not run |
+| Daily community update runs after start | Not run |
 

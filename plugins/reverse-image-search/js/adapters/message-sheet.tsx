@@ -3,11 +3,13 @@ import { Design } from '@valenced/discord/design'
 import { getModules } from '@valenced/modules/finders'
 import { withName } from '@valenced/modules/finders/filters'
 import { instead } from '@valenced/patcher'
+import { domainsFromMessage } from '../core/link-risk'
 import { profileSignals, profileTargets } from '../core/profile'
 import { targetsFromMessage } from '../core/target'
 import { appendChild, findByType } from '../core/tree'
+import { openLinkSheet } from '../ui/LinkSheet'
 import { openSearchSheet } from '../ui/SearchSheet'
-import { profileIcon, searchIcon } from './icons'
+import { linkIcon, profileIcon, searchIcon } from './icons'
 import { profileForMessage } from './profile'
 import type { FC } from 'react'
 import type { Profile } from '../core/profile'
@@ -37,6 +39,7 @@ export function patchMessageSheet(
 						tree,
 						targetsFromMessage(message),
 						profileForMessage(message, onRecords),
+						domainsFromMessage(message),
 					)
 				} catch (error) {
 					onError(error)
@@ -58,25 +61,32 @@ function addRows(
 	tree: unknown,
 	targets: ImageTarget[],
 	profile: Profile | undefined,
+	domains: string[],
 ) {
-	if (!targets.length && !profile) return
+	if (!targets.length && !profile && !domains.length) return
 
 	const sheet = findByType(tree, Design.ActionSheet)
 	if (!sheet) return
 
-	appendChild(sheet, <PluginRows targets={targets} profile={profile} />)
+	appendChild(
+		sheet,
+		<PluginRows targets={targets} profile={profile} domains={domains} />,
+	)
 }
 
 function PluginRows({
 	targets,
 	profile,
+	domains,
 }: {
 	targets: ImageTarget[]
 	profile: Profile | undefined
+	domains: string[]
 }) {
 	const { ActionSheetRow } = Design
 	const SearchIcon = searchIcon()
 	const ProfileIcon = profileIcon()
+	const LinkIcon = linkIcon()
 
 	return (
 		<ActionSheetRow.Group>
@@ -108,6 +118,20 @@ function PluginRows({
 							title: profile.name,
 							signals: profileSignals(profile, Date.now()),
 						})
+					}}
+				/>
+			)}
+			{domains.length > 0 && (
+				<ActionSheetRow
+					label="Check Links"
+					icon={
+						LinkIcon ? (
+							<ActionSheetRow.Icon IconComponent={LinkIcon} />
+						) : undefined
+					}
+					onPress={() => {
+						ActionSheetActionCreators.hideActionSheet()
+						openLinkSheet(domains)
 					}}
 				/>
 			)}

@@ -34,9 +34,13 @@ Profile pictures and banners check your list by themselves once it has entries, 
 
 ## Community list
 
-**Update community list** downloads a signed list from `raw.githubusercontent.com`, so GitHub sees your IP address. The list holds fingerprints, categories, and report counts, never pictures or names.
+The community list updates by itself at most once a day, and **Update community list** does it on demand. It's a signed list from `raw.githubusercontent.com`, so GitHub sees your IP address. The list holds fingerprints, categories, and report counts, never pictures or names.
 
 **Report to community list** opens GitHub in your browser with the image's fingerprint filled in. Nothing is sent until you submit it. The issue is public and shows your GitHub account. Every report needs Sensei's approval before it joins the list.
+
+## Check Links
+
+**Check Links** reads the links in a message and checks them on your phone. Your links aren't sent anywhere. To do that, the plugin downloads a public scam domain list from `raw.githubusercontent.com`, so GitHub sees your IP address.
 
 ## Device probe
 
@@ -56,6 +60,5 @@ These hosts are for later phases and aren't contacted yet. This list is updated 
 
 | Phase | Host | What it receives |
 | --- | --- | --- |
-| P8 | RDAP services | Domains found in a message, plus your IP address |
 
 The plugin never reads or shows GPS or location fields.

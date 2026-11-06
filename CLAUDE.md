@@ -148,7 +148,7 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.7.0-alpha1",
+	"version": "0.8.0-alpha1",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
 		"discord": { "version": ">=352.6" }
@@ -293,6 +293,7 @@ Browser hand-off skips the upload path. It opens one provider with the encoded i
 - `pdq.ts`: PDQ hash, quality, flips, and distance. Tests match the reference tool exactly.
 - `hash-list.ts`: The saved list, matching, and its signals.
 - `community-list.ts`: Signed list parsing, matching, signals, and report links.
+- `link-risk.ts`: Finds domains in a message, then checks them against the scam list and for lookalikes.
 - `sha256.ts` and `ed25519.ts`: Verify the community list with no outside package. Tests check them against Node's crypto.
 - `settings.ts`: Defaults, validation, and migration.
 - `redact.ts`: Removes URLs, query strings, and keys from diagnostics.
@@ -532,7 +533,7 @@ Use `XMLHttpRequest` with `responseType = 'arraybuffer'`. Check `Content-Length`
 
 - Allow downloads only from `cdn.discordapp.com`, `media.discordapp.net`, and `images-ext-1` or `images-ext-2.discordapp.net`.
 - Allow API calls only to each provider's exact HTTPS host.
-- The community list only comes from `raw.githubusercontent.com`.
+- The community list and scam domain list only come from `raw.githubusercontent.com`.
 - Check `xhr.responseURL` after redirects.
 - Set `withCredentials = false`.
 - Never send provider keys to any other host.
@@ -873,6 +874,10 @@ Work:
 - A **Report to community list** row that opens a prefilled GitHub issue. `blocklist-intake.yml` turns it into a PR, and Sensei approves it. **Built.**
 - Community hits show distance, report count, and category, because there is no image to compare. **Built.**
 
+Sensei skipped the report-to-PR and removal checks on 2026-11-06, because seeing matches matters more to him than reporting. Run them before P10 if reporting stays. A report is public under the reporter's GitHub account, which needs a decision before release.
+
+The list now also updates by itself, at most once a day, after a 20-second delay at start. **Built.**
+
 Setup done by Sensei on 2026-11-06: signing key created, public key added to `ListPublicKey`, and Actions allowed to create pull requests. Replacing the key needs a plugin update.
 
 Acceptance:
@@ -885,13 +890,15 @@ Acceptance:
 
 Work:
 
-- `core/link-risk.ts`: URL extraction, known phishing domains, lookalike scoring, and `xn--` detection.
-- Mirror a maintained phishing list into the Pages file, so the plugin only contacts one list host. Discord-AntiScam was archived on 2026-10-15, so check any list's activity and licence first.
-- Optional RDAP domain age. [S] rdap.org allows 10 requests in 10 seconds and redirects to each registry, so `http.ts` needs an RDAP-only redirect rule.
+- `core/link-risk.ts`: URL extraction, known scam domains, lookalike scoring, and `xn--` detection. **Built.**
+- A **Check Links** row on messages with links, opening `ui/LinkSheet.tsx`. **Built.** The check runs on the phone, and links are never sent anywhere.
+- `adapters/link-check.ts` downloads [fisphish's Discord list](https://github.com/fisventurous/fisphish) from GitHub and keeps it in memory for 3 hours. **Built.** On 2026-11-06 it held about 32,000 domains, was refreshed the day before, and is MIT-licensed. Its upstream feeds keep their own terms, so this project fetches it rather than republishing it. nikolaischunk's list stopped in March 2024, and Discord-AntiScam was archived with no licence.
+- Real Discord, Steam, and Roblox domains are never flagged, even if a list names them.
+- RDAP domain age is left out, because the list and lookalike checks cover the same job with less network use.
 
 Acceptance:
 
-- A known phishing domain and a lookalike of `discord.com` are both flagged.
+- A known scam domain and a lookalike of `discord.com` are both flagged.
 - Normal Discord and Steam links are not flagged.
 
 ### P9: Crop and mirror search
