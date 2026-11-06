@@ -10,22 +10,24 @@ Fill this in from the probe report. Never paste signed URLs here.
 
 | Field | Value |
 | --- | --- |
-| Commit | Pending |
-| ZIP SHA-256 | Pending |
-| Device | Pending |
-| Android SDK | Pending |
-| Valenced version | Pending |
-| Valenced build type | Pending |
-| Discord version and build | Pending |
+| Commit | `8449e52` |
+| ZIP SHA-256 | `1ca07056616771d325ed2f270438841345de694436de0063f084cda99d2b980c` |
+| Device | Motorola G40s |
+| Android SDK | 34 |
+| Valenced version | 1.3.0, commit `0f9c6d9` |
+| Valenced build type | Production |
+| Discord version and build | 352.6 (352206), canary |
 
 ## Gates
 
 | # | Question | Status | Evidence |
 | --- | --- | --- | --- |
 | 1 | GitHub owner that hides personal details | Passed | Sensei created `quiet-falcon` on 2026-11-06 |
-| 2 | Device versions | Not run | Needs probe report |
+| 2 | Device versions | Passed | Two probe reports |
 | 3 | Pinned Git install and CLI peer | Passed | [Actions run 42139455426](https://github.com/quiet-falcon/lo-reverse-img-search-plugin/actions/runs/42139455426): frozen install passed, `bun.lock` unchanged |
 | 4 | Gradle packages with no token | Passed | Same run: production and probe ZIPs built with no secrets |
-| 5 | `MediaModalOverlayHeader` exists | Not run | Needs probe report |
-| 6 | `MediaShareActionSheet` exists | Not run | Needs probe report |
-| 7 | Attachment, embed, and video fields | Not run | Needs probe report |
+| 5 | `MediaModalOverlayHeader` exists | Passed | Plain function export, plugins off run |
+| 6 | `MediaShareActionSheet` exists | Passed | Sheet key seen, plugins off run |
+| 7 | Attachment, embed, and video fields | Partly passed | Attachment and embed captured. Video and stickers still open |
+
+Each probe ran with no errors. The plugins-on run did not open the viewer, so that combination is still open.

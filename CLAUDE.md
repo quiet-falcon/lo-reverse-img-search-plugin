@@ -74,7 +74,7 @@ Reviewed on 2026-11-06, and all six still matched upstream `HEAD` when P0 starte
 - [S] Finder results, including misses, are cached by filter key. Prefer `getModules` at start over `lookupModule` when a sheet opens.
 - [S] If you change a filter with `keyAs()`, change its key too.
 - [S] `discord` is a real dependency check against the host app, so a wrong range can block the plugin.
-- [A, gate P0] Discord's target version is unknown until read from the device. Use `discord: *` for the probe, then tighten it to the tested range.
+- [S] Tested target: Discord 352.6 canary on Valenced 1.3.0. The manifest uses `>=352.6`, matching the lower-bound style of community plugins.
 
 Revalidate these pins when a phase starts. If upstream has moved, record old and new commits in `docs/compatibility.md`.
 
@@ -150,10 +150,10 @@ Folder `plugins/reverse-image-search` gives the Gradle task `packageReverseImage
 	"description": "Search Discord images across multiple engines, with results inside the app.",
 	"author": "LO",
 	"icon": "ImageIcon",
-	"version": "0.1.0-alpha1",
+	"version": "0.1.0-alpha2",
 	"dependencies": {
 		"valenced.api": { "version": ">=1 <2" },
-		"discord": { "version": "*" }
+		"discord": { "version": ">=352.6" }
 	},
 	"dist": { "script": "index.js" }
 }
@@ -222,7 +222,8 @@ P0 run on 2026-11-06:
 | Gradle packaging | **Passed** on GitHub Actions for production and probe ZIPs, with no token |
 | Hand-built probe ZIP | **Passed** `generate-index`, with `manifest.json` and `index.js` at its root |
 | Actions ZIP contents | **Passed:** `check-zip.sh` found only `manifest.json` and `index.js`. The probe's two files match the hand-built ZIP by SHA-256 |
-| Device install | **Not run** |
+| Device install | **Passed** on Valenced 1.3.0, production build, Discord 352.6 canary, Android SDK 34 |
+| Device stop and viewer with plugins on | **Not run** |
 
 Treat the "Not run" rows as open until P0 passes.
 
@@ -345,9 +346,10 @@ If one entry point fails, keep the others working. Never let a patch failure bre
 
 ### Image targets
 
-- [C] Attachments expose fields such as `url`, `proxy_url`, `content_type`, `size`, `width`, and `height`. Plugin examples use these names.
-- [C] Media viewer sources include `uri`, `sourceURI`, `videoURI`, `width`, `height`, `filename`, and `contentType`.
-- [A, gate P0] Confirm the exact shape for attachments, embeds, stickers, and video on the device.
+- [S] Device report, Discord 352.6. Attachments: `id`, `url`, `proxy_url`, `filename`, `content_type`, `original_content_type` (not always present), `size`, `width`, `height`, `placeholder`.
+- [S] Embeds: `type`, `url`, `image`, `thumbnail`, `video`. Embed images use camelCase: `url`, `proxyURL`, `contentType`, `width`, `height`, `srcIsAnimated`.
+- [S] Viewer source: `uri`, `sourceURI`, `shareURI`, `attachmentId`, `messageId`, `channelId`, `guildId`, `contentType`, `filename`, `width`, `height`, `spoiler`, `obscure`, `mediaIndex`.
+- [A, gate P1] Sticker and video shapes. The report did not sample them.
 
 Show a picker when a message has more than one image. Spoilered images stay blurred until tapped. Videos use a single still frame.
 
@@ -844,12 +846,12 @@ Point `latest` back to an earlier version in `repo.config.json`, then run the pu
 | # | Question | Gate | If it fails |
 | --- | --- | --- | --- |
 | 1 | Which GitHub owner hosts the repo without revealing personal details? | Settled: `quiet-falcon`, 2026-11-06 | Move the repo, then update the install link |
-| 2 | Exact Valenced, Discord, and Android versions on the phone | P0 | Tighten or change the range |
+| 2 | Exact Valenced, Discord, and Android versions on the phone | Passed: 1.3.0, 352.6 canary, SDK 34 | Tighten or change the range |
 | 3 | Do the Bun pinned Git install and CLI peer dependency resolve cleanly against GitHub? | Passed, 2026-11-06 | Use tags or commit a reviewed vendored copy |
 | 4 | Does Gradle package a JS-only plugin with no token? | Passed, 2026-11-06 | Find the trigger, then adjust the build |
-| 5 | Does `MediaModalOverlayHeader` exist on the target build? | P0 | Use another viewer path, or long-press only |
-| 6 | Does `MediaShareActionSheet` still exist? | P0 | Drop it |
-| 7 | Exact attachment, embed, and video fields | P0 | Update `target.ts` |
+| 5 | Does `MediaModalOverlayHeader` exist on the target build? | Passed: plain function export | Use another viewer path, or long-press only |
+| 6 | Does `MediaShareActionSheet` still exist? | Passed | Drop it |
+| 7 | Exact attachment, embed, and video fields | Attachment and embed passed, video gate P1 | Update `target.ts` |
 | 8 | Which hand-off engines accept signed Discord URLs? | P1 | Hide failing engines |
 | 9 | Do proxy URLs fix the old `octet-stream` failure? | P1 | Use original URLs or in-app providers |
 | 10 | Does `format=jpeg` work on the media proxy? | P2 | Use PNG, then the original |
